@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panell d'Administració</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+        h1, h2 { color: #555; }
+        .container { max-width: 900px; margin: auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 40px; }
+        form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 3px; font-size: 1em; }
+        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background-color: #0056b3; }
+        .delete-btn { background-color: #dc3545; }
+        .delete-btn:hover { background-color: #c82333; }
+        .edit-btn { background-color: #ffc107; }
+        .edit-btn:hover { background-color: #e0a800; }
+        .item-list { list-style: none; padding: 0; }
+        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .item-content { flex-grow: 1; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Panell d'Administració</h1>
+
+        <!-- Secció de Projectes -->
+        <div class="section">
+            <h2>Projectes</h2>
+            <form id="project-form">
+                <input type="hidden" id="project-id">
+                <input type="text" id="project-title" placeholder="Títol del Projecte" required>
+                <textarea id="project-description" placeholder="Descripció" required></textarea>
+                <input type="url" id="project-url" placeholder="URL del Projecte">
+                <button type="submit">Guardar Projecte</button>
+            </form>
+            <ul id="projects-list" class="item-list"></ul>
+        </div>
+
+        <!-- Secció d'Aplicacions -->
+        <div class="section">
+            <h2>Aplicacions</h2>
+            <form id="app-form">
+                <input type="hidden" id="app-id">
+                <input type="text" id="app-title" placeholder="Títol de l'App" required>
+                <textarea id="app-description" placeholder="Descripció" required></textarea>
+                <input type="url" id="app-url" placeholder="URL de l'App">
+                <button type="submit">Guardar App</button>
+            </form>
+            <ul id="apps-list" class="item-list"></ul>
+        </div>
+
+        <!-- Secció del Bloc -->
+        <div class="section">
+            <h2>Bloc</h2>
+            <form id="blog-form">
+                <input type="hidden" id="blog-id">
+                <input type="text" id="blog-title" placeholder="Títol de l'Entrada" required>
+                <input type="date" id="blog-date" required>
+                <textarea id="blog-content" placeholder="Contingut" rows="10" required></textarea>
+                <button type="submit">Guardar Entrada</button>
+            </form>
+            <ul id="blog-list" class="item-list"></ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = '/api';
+
+            // Funció per carregar totes les dades
+            const loadData = async () => {
+                const response = await fetch(`${API_URL}/data`);
+                const data = await response.json();
+                
+                renderList('projects', data.projects);
+                renderList('apps', data.apps);
+                renderList('blog', data.blog);
+            };
+
+            // Funció per renderitzar una llista d'elements
+            const renderList = (type, items) => {
+                const list = document.getElementById(`${type}-list`);
+                list.innerHTML = '';
+                items.forEach(item => {
+                    const li = document.createElement('li');
+                    li.className = 'item';
+                    li.innerHTML = `
+                        <div class="item-content">
+                            <strong>${item.title}</strong>
+                            <p>${item.description || item.content.substring(0, 100) + '...'}</p>
+                        </div>
+                        <div>
+                            <button class="edit-btn" onclick="editItem('${type.slice(0, -1)}', ${item.id})">Editar</button>
+                            <button class="delete-btn" onclick="deleteItem('${type.slice(0, -1)}', ${item.id})">Esborrar</button>
+                        </div>
+                    `;
+                    list.appendChild(li);
+                });
+            };
+
+            // Gestionar l'enviament de formularis
+            const handleFormSubmit = async (event, type) => {
+                event.preventDefault();
+                const form = event.target;
+                const id = form.querySelector(`#${type}-id`).value;
+                
+                let body = {};
+                if (type === 'project' || type === 'app') {
+                    body = {
+                        title: form.querySelector(`#${type}-title`).value,
+                        description: form.querySelector(`#${type}-description`).value,
+                        url: form.querySelector(`#${type}-url`).value
+                    };
+                } else if (type === 'blog') {
+                    body = {
+                        title: form.querySelector(`#${type}-title`).value,
+                        content: form.querySelector(`#${type}-content`).value,
+                        date: form.querySelector(`#${type}-date`).value
+                    };
+                }
+
+                const method = id ? 'PUT' : 'POST';
+                const url = id ? `${API_URL}/edit/${type}/${id}` : `${API_URL}/add/${type}`;
+
+                await fetch(url, {
+                    method,
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+
+                form.reset();
+                loadData();
+            };
+
+            document.getElementById('project-form').addEventListener('submit', (e) => handleFormSubmit(e, 'project'));
+            document.getElementById('app-form').addEventListener('submit', (e) => handleFormSubmit(e, 'app'));
+            document.getElementById('blog-form').addEventListener('submit', (e) => handleFormSubmit(e, 'blog'));
+
+            // Funció per esborrar un element
+            window.deleteItem = async (type, id) => {
+                if (confirm('Estàs segur que vols esborrar aquest element?')) {
+                    await fetch(`${API_URL}/delete/${type}/${id}`, { method: 'DELETE' });
+                    loadData();
+                }
+            };
+
+            // Funció per carregar un element al formulari per editar-lo
+            window.editItem = async (type, id) => {
+                // Primer, obtenim totes les dades per trobar l'element específic
+                const response = await fetch(`${API_URL}/data`);
+                const data = await response.json();
+                
+                let item;
+                if(type === 'project') item = data.projects.find(p => p.id === id);
+                if(type === 'app') item = data.apps.find(a => a.id === id);
+                if(type === 'blog') item = data.blog.find(b => b.id === id);
+
+                if (!item) return;
+
+                document.getElementById(`${type}-id`).value = item.id;
+                document.getElementById(`${type}-title`).value = item.title;
+                if (type === 'project' || type === 'app') {
+                    document.getElementById(`${type}-description`).value = item.description;
+                    document.getElementById(`${type}-url`).value = item.url;
+                } else {
+                    document.getElementById(`${type}-content`).value = item.content;
+                    document.getElementById(`${type}-date`).value = item.date;
+                }
+                
+                window.scrollTo(0, document.getElementById(`${type}-form`).offsetTop);
+            };
+
+            // Carrega inicial
+            loadData();
+        });
+    </script>
+
+</body>
+</html>

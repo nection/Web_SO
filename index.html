@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>El Meu Portafolis</title>
+    <style>
+        /* Estils generals i de l'escriptori */
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'VT323', monospace, sans-serif;
+            background-color: #008080;
+            user-select: none;
+        }
+
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+        
+        #menu-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 25px;
+            background: #c0c0c0;
+            border-bottom: 2px solid #808080;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            box-sizing: border-box;
+            font-size: 18px;
+            z-index: 10000;
+        }
+        
+        #taskbar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 35px;
+            background: #c0c0c0;
+            border-top: 2px solid #ffffff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 5px;
+            box-sizing: border-box;
+            z-index: 10000;
+        }
+
+        #start-button {
+            font-weight: bold;
+            padding: 2px 10px;
+            border: 2px solid;
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            cursor: pointer;
+        }
+        #start-button:active {
+            border-top-color: #808080;
+            border-left-color: #808080;
+            border-right-color: #ffffff;
+            border-bottom-color: #ffffff;
+        }
+
+        #clock {
+            padding: 2px 10px;
+            border: 2px inset #808080;
+        }
+
+        #desktop {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            padding-top: 25px; 
+            padding-bottom: 35px;
+            box-sizing: border-box;
+            display: flex;
+            align-items: flex-start;
+            padding-left: 30px;
+        }
+
+        #desktop-icons {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding-top: 20px;
+        }
+        
+        .icon {
+            width: 90px;
+            text-align: center;
+            cursor: pointer;
+            color: white;
+            padding: 5px;
+        }
+
+        .icon:hover, .icon:focus {
+            background-color: rgba(0, 0, 128, 0.5);
+            border: 1px dotted white;
+        }
+
+        .icon img {
+            width: 50px;
+            height: 50px;
+        }
+
+        .icon span {
+            display: block;
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+
+        .window {
+            position: absolute;
+            background-color: #c0c0c0;
+            border: 2px solid;
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.5);
+            min-width: 300px;
+            min-height: 200px;
+            width: 500px;
+            height: 350px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window .title-bar {
+            background-color: #000080;
+            color: white;
+            padding: 3px 5px;
+            font-weight: bold;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: move;
+            height: 20px;
+        }
+
+        .title-bar-buttons button {
+            background-color: #c0c0c0;
+            border: 1px solid;
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            font-family: 'VT323', monospace;
+            width: 16px;
+            height: 14px;
+            padding: 0;
+            margin-left: 2px;
+            cursor: pointer;
+        }
+
+        .window .content {
+            flex-grow: 1;
+            padding: 10px;
+            background-color: white;
+            margin: 3px;
+            overflow-y: auto;
+            color: black;
+            font-size: 18px;
+        }
+        
+        .resizer {
+            width: 15px;
+            height: 15px;
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            cursor: se-resize;
+        }
+        
+        .window .content.folder-view {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-content: flex-start;
+        }
+
+        .file-icon {
+            width: 70px;
+            text-align: center;
+            cursor: pointer;
+            color: black;
+        }
+        
+        .file-icon:hover {
+            background-color: #e0e0e0;
+        }
+
+        .file-icon img {
+            width: 40px;
+            height: 40px;
+        }
+        
+        .file-icon span {
+            font-size: 14px;
+            word-wrap: break-word;
+        }
+        
+        .file-content-view h1 { font-size: 24px; margin-top: 0;}
+        .file-content-view p { white-space: pre-wrap; }
+        .file-content-view a { color: #0000ff; }
+        .file-content-view .date { font-style: italic; color: #666; font-size: 0.9em; margin-bottom: 15px; display: block;}
+
+    </style>
+</head>
+<body>
+
+    <div id="menu-bar">
+        <span><b>El Meu Portafolis</b> v1.3</span>
+    </div>
+
+    <div id="desktop">
+        <div id="desktop-icons">
+            <div class="icon" id="icon-projects" tabindex="0">
+                <img src="carpeta.png" alt="Carpeta de Projectes">
+                <span>Projectes</span>
+            </div>
+            <div class="icon" id="icon-apps" tabindex="0">
+                <img src="carpeta.png" alt="Carpeta d'Apps">
+                <span>Apps</span>
+            </div>
+            <div class="icon" id="icon-blog" tabindex="0">
+                <img src="carpeta.png" alt="Arxiu de Bloc">
+                <span>Bloc</span>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskbar">
+        <div id="start-button">Inici</div>
+        <div id="clock"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            let zIndexCounter = 10;
+            const desktop = document.getElementById('desktop');
+            let dataCache = null;
+
+            const fetchData = async () => {
+                if (dataCache) return dataCache;
+                const response = await fetch('/api/data');
+                dataCache = await response.json();
+                return dataCache;
+            };
+            
+            const createWindow = (id, title, contentHTML, options = {}) => {
+                const existingWindow = document.getElementById(id);
+                if (existingWindow) {
+                    existingWindow.style.zIndex = zIndexCounter++;
+                    return;
+                }
+
+                const win = document.createElement('div');
+                win.id = id;
+                win.className = 'window';
+                
+                win.style.left = options.pos?.left || `${Math.random() * (desktop.offsetWidth - 550) + 20}px`;
+                win.style.top = options.pos?.top || `${Math.random() * (desktop.offsetHeight - 400) + 20}px`;
+                win.style.zIndex = zIndexCounter++;
+
+                win.innerHTML = `
+                    <div class="title-bar">
+                        <span class="title">${title}</span>
+                        <div class="title-bar-buttons">
+                            <button class="close-btn">x</button>
+                        </div>
+                    </div>
+                    <div class="content ${options.contentClass || ''}">${contentHTML}</div>
+                    <div class="resizer"></div>
+                `;
+
+                desktop.appendChild(win);
+                makeDraggable(win);
+                makeResizable(win);
+                
+                win.querySelector('.close-btn').addEventListener('click', () => win.remove());
+                win.addEventListener('mousedown', () => win.style.zIndex = zIndexCounter++);
+
+                if (options.isFolder) {
+                    win.addEventListener('dblclick', handleOpenFile);
+                }
+            };
+            
+            const handleOpenFile = async (event) => {
+                const fileIcon = event.target.closest('.file-icon');
+                if (!fileIcon) return;
+
+                const { type, id } = fileIcon.dataset;
+                const numericId = parseInt(id, 10);
+                
+                const data = await fetchData();
+                
+                // *** CORREGIT: Línia per trobar l'element correcte a la llista de dades ***
+                const arrayName = type === 'blog' ? 'blog' : type + 's';
+                const item = data[arrayName].find(d => d.id === numericId);
+
+                if (!item) {
+                    console.error("No s'ha trobat l'element:", type, id);
+                    return;
+                }
+
+                let fileContentHTML = '';
+                let fileTitle = `${item.title}.txt`;
+
+                if (type === 'project' || type === 'app') {
+                    fileContentHTML = `
+                        <h1>${item.title}</h1>
+                        <p>${item.description}</p>
+                        ${item.url ? `<a href="${item.url}" target="_blank">Obrir en una nova pestanya</a>` : ''}
+                    `;
+                } else if (type === 'blog') {
+                    fileContentHTML = `
+                        <h1>${item.title}</h1>
+                        <div class="date">${new Date(item.date).toLocaleDateString()}</div>
+                        <p>${item.content}</p>
+                    `;
+                }
+                
+                createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, { contentClass: 'file-content-view' });
+            };
+
+            document.getElementById('icon-projects').addEventListener('dblclick', async () => {
+                const data = await fetchData();
+                let content = '';
+                data.projects.forEach(p => {
+                    content += `
+                        <div class="file-icon" data-type="project" data-id="${p.id}">
+                            <!-- *** CANVIAT: S'utilitza file.png *** -->
+                            <img src="file.png" alt="Arxiu">
+                            <span>${p.title}</span>
+                        </div>
+                    `;
+                });
+                createWindow('window-projects', 'Projectes', content, { isFolder: true, contentClass: 'folder-view' });
+            });
+
+            document.getElementById('icon-apps').addEventListener('dblclick', async () => {
+                const data = await fetchData();
+                let content = '';
+                data.apps.forEach(a => {
+                    content += `
+                        <div class="file-icon" data-type="app" data-id="${a.id}">
+                            <!-- *** CANVIAT: S'utilitza file.png *** -->
+                            <img src="file.png" alt="Arxiu">
+                            <span>${a.title}</span>
+                        </div>
+                    `;
+                });
+                createWindow('window-apps', 'Aplicacions', content, { isFolder: true, contentClass: 'folder-view' });
+            });
+
+            document.getElementById('icon-blog').addEventListener('dblclick', async () => {
+                const data = await fetchData();
+                let content = '';
+                data.blog.forEach(b => {
+                    content += `
+                        <div class="file-icon" data-type="blog" data-id="${b.id}">
+                             <!-- *** CANVIAT: S'utilitza file.png *** -->
+                            <img src="file.png" alt="Arxiu">
+                            <span>${b.title}.txt</span>
+                        </div>
+                    `;
+                });
+                createWindow('window-blog', 'Bloc', content, { isFolder: true, contentClass: 'folder-view' });
+            });
+
+            const makeDraggable = (element) => {
+                let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+                const header = element.querySelector('.title-bar');
+                if (header) header.onmousedown = dragMouseDown;
+
+                function dragMouseDown(e) {
+                    e.preventDefault();
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    document.onmouseup = closeDragElement;
+                    document.onmousemove = elementDrag;
+                }
+
+                function elementDrag(e) {
+                    e.preventDefault();
+                    pos1 = pos3 - e.clientX;
+                    pos2 = pos4 - e.clientY;
+                    pos3 = e.clientX;
+                    pos4 = e.clientY;
+                    element.style.top = (element.offsetTop - pos2) + "px";
+                    element.style.left = (element.offsetLeft - pos1) + "px";
+                }
+
+                function closeDragElement() {
+                    document.onmouseup = null;
+                    document.onmousemove = null;
+                }
+            };
+            
+            const makeResizable = (element) => {
+                const resizer = element.querySelector('.resizer');
+                resizer.addEventListener('mousedown', initResize, false);
+                function initResize(e) {
+                    let startX = e.clientX;
+                    let startY = e.clientY;
+                    let startWidth = parseInt(document.defaultView.getComputedStyle(element).width, 10);
+                    let startHeight = parseInt(document.defaultView.getComputedStyle(element).height, 10);
+                    function doResize(e) {
+                        element.style.width = (startWidth + e.clientX - startX) + 'px';
+                        element.style.height = (startHeight + e.clientY - startY) + 'px';
+                    }
+                    function stopResize() {
+                        document.documentElement.removeEventListener('mousemove', doResize, false);
+                        document.documentElement.removeEventListener('mouseup', stopResize, false);
+                    }
+                    document.documentElement.addEventListener('mousemove', doResize, false);
+                    document.documentElement.addEventListener('mouseup', stopResize, false);
+                }
+            }
+
+            document.querySelectorAll('.icon').forEach(icon => makeDraggable(icon));
+            
+            const updateClock = () => {
+                const now = new Date();
+                const hours = String(now.getHours()).padStart(2, '0');
+                const minutes = String(now.getMinutes()).padStart(2, '0');
+                document.getElementById('clock').textContent = `${hours}:${minutes}`;
+            }
+            setInterval(updateClock, 1000);
+            updateClock();
+
+            const showWelcomeWindow = () => {
+                const welcomeContent = `
+                    <h1>Benvingut/da al meu Portafolis!</h1>
+                    <p>Hola! Soc [El Teu Nom], un/a apassionat/da del desenvolupament i la tecnologia.</p>
+                    <p>Aquesta pàgina és una simulació d'un escriptori d'ordinador clàssic. Per explorar el meu treball, fes el següent:</p>
+                    <ul>
+                        <li><b>Doble clic</b> en una carpeta (Projectes, Apps, Bloc) per veure els arxius que conté.</li>
+                        <li><b>Doble clic</b> en un arxiu dins d'una carpeta per obrir-lo i veure'n el contingut.</li>
+                        <li><b>Arrossega</b> les finestres i les icones per moure-les.</li>
+                        <li><b>Redimensiona</b> les finestres des de la cantonada inferior dreta.</li>
+                    </ul>
+                    <p>Pots tenir múltiples finestres obertes alhora. Gaudeix de l'experiència!</p>
+                `;
+                const centerLeft = (window.innerWidth / 2) - 250;
+                const centerTop = (window.innerHeight / 2) - 200;
+                
+                createWindow('window-welcome', 'Benvinguda.txt', welcomeContent, { pos: {left: `${centerLeft}px`, top: `${centerTop}px`}, contentClass: 'file-content-view' });
+            }
+
+            // Càrrega inicial
+            fetchData();
+            showWelcomeWindow();
+        });
+    </script>
+</body>
+</html>
