@@ -4,180 +4,325 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Panell d'Administració</title>
+    <script src="tinymce/tinymce.min.js"></script>
     <style>
-        body { font-family: sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
-        h1, h2 { color: #555; }
-        .container { max-width: 900px; margin: auto; background: white; padding: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        :root { --primary-color: #007bff; --light-gray: #f8f9fa; --border-color: #dee2e6; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: #f4f4f4; color: #333; margin: 0; padding: 20px; }
+        .container { max-width: 1100px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        h1, h2 { color: #343a40; border-bottom: 2px solid var(--primary-color); padding-bottom: 10px; display: flex; justify-content: space-between; align-items: center; }
         .section { margin-bottom: 40px; }
-        form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
-        input, textarea { padding: 10px; border: 1px solid #ccc; border-radius: 3px; font-size: 1em; }
-        button { padding: 10px 15px; background-color: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
-        button:hover { background-color: #0056b3; }
-        .delete-btn { background-color: #dc3545; }
-        .delete-btn:hover { background-color: #c82333; }
-        .edit-btn { background-color: #ffc107; }
-        .edit-btn:hover { background-color: #e0a800; }
-        .item-list { list-style: none; padding: 0; }
-        .item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
-        .item-content { flex-grow: 1; }
+        .editor-view { display: none; }
+        .table-wrapper { overflow-x: auto; }
+        .data-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border-color); vertical-align: middle; }
+        .data-table th { background-color: var(--light-gray); font-weight: 600; }
+        .data-table tr:hover { background-color: #f1f1f1; }
+        .data-table .actions-cell { width: 200px; text-align: right; }
+        button { border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: 600; transition: background-color 0.2s, box-shadow 0.2s; padding: 10px 15px; }
+        .btn { display: inline-block; text-align: center; vertical-align: middle; user-select: none; }
+        .btn-sm { padding: 5px 10px; font-size: 0.875em; }
+        .btn-primary { background-color: var(--primary-color); color: white; }
+        .btn-primary:hover { background-color: #0069d9; }
+        .btn-secondary { background-color: #6c757d; color: white; }
+        .btn-secondary:hover { background-color: #5a6268; }
+        .btn-success { background-color: #28a745; color: white; }
+        .btn-success:hover { background-color: #218838; }
+        .btn-warning { background-color: #ffc107; color: #212529; }
+        .btn-warning:hover { background-color: #e0a800; }
+        .btn-danger { background-color: #dc3545; color: white; }
+        .btn-danger:hover { background-color: #c82333; }
+        .status-switch { position: relative; display: inline-block; width: 50px; height: 24px; margin-right: 10px; }
+        .status-switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 24px; }
+        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
+        input:checked + .slider { background-color: #28a745; }
+        input:checked + .slider:before { transform: translateX(26px); }
+        .status-label { padding: 3px 8px; border-radius: 12px; font-size: 0.8em; font-weight: bold; color: white; }
+        .status-published { background-color: #28a745; }
+        .status-draft { background-color: #6c757d; }
+        .editor-form { display: flex; flex-direction: column; gap: 20px; padding: 20px; background-color: var(--light-gray); border-radius: 8px; border: 1px solid var(--border-color); }
+        .editor-form h3 { margin-top: 0; color: #0056b3; }
+        .editor-form input[type="text"], .editor-form input[type="url"], .editor-form input[type="date"], .editor-form select { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; width: 100%; box-sizing: border-box; }
+        .form-grid { display: grid; grid-template-columns: 1fr 220px; gap: 20px; align-items: flex-start; }
+        .form-fields { display: flex; flex-direction: column; gap: 15px; }
+        .form-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--border-color); }
+        .featured-image-control { display: flex; flex-direction: column; gap: 10px; }
+        .image-preview { width: 100%; height: 120px; background-color: #e9ecef; border: 2px dashed #ccc; border-radius: 5px; background-size: cover; background-position: center; position: relative; cursor: pointer; }
+        .image-preview span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c757d; font-size: 0.9em; text-align: center; padding: 5px; }
+        .image-preview:hover { border-color: var(--primary-color); }
+        .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
+        .media-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none;
+            /* <<<< CORRECCIÓ CLAU: Augmentem la prioritat per sobre de les finestres de TinyMCE */
+            z-index: 99999;
+        }
+        .media-modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; height: 80vh; background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column;
+            z-index: 999999; /* Ha de ser superior a l'overlay */
+        }
+        .media-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
+        .media-modal-close { font-size: 2em; font-weight: bold; cursor: pointer; }
+        .media-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 10px 0; }
+        .media-grid img { width: 100%; height: 100px; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+        .media-grid img:hover { border-color: var(--primary-color); }
+        .upload-area { padding: 15px; border-top: 1px solid #ccc; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>Panell d'Administració</h1>
+        <h1>Panell d'Administració <button id="open-media-btn" class="btn btn-secondary">Mediateca</button></h1>
 
-        <!-- Secció de Projectes -->
-        <div class="section">
-            <h2>Projectes</h2>
-            <form id="project-form">
-                <input type="hidden" id="project-id">
-                <input type="text" id="project-title" placeholder="Títol del Projecte" required>
-                <textarea id="project-description" placeholder="Descripció" required></textarea>
-                <input type="url" id="project-url" placeholder="URL del Projecte">
-                <button type="submit">Guardar Projecte</button>
-            </form>
-            <ul id="projects-list" class="item-list"></ul>
-        </div>
-
-        <!-- Secció d'Aplicacions -->
-        <div class="section">
-            <h2>Aplicacions</h2>
-            <form id="app-form">
-                <input type="hidden" id="app-id">
-                <input type="text" id="app-title" placeholder="Títol de l'App" required>
-                <textarea id="app-description" placeholder="Descripció" required></textarea>
-                <input type="url" id="app-url" placeholder="URL de l'App">
-                <button type="submit">Guardar App</button>
-            </form>
-            <ul id="apps-list" class="item-list"></ul>
-        </div>
-
-        <!-- Secció del Bloc -->
-        <div class="section">
-            <h2>Bloc</h2>
-            <form id="blog-form">
-                <input type="hidden" id="blog-id">
-                <input type="text" id="blog-title" placeholder="Títol de l'Entrada" required>
-                <input type="date" id="blog-date" required>
-                <textarea id="blog-content" placeholder="Contingut" rows="10" required></textarea>
-                <button type="submit">Guardar Entrada</button>
-            </form>
-            <ul id="blog-list" class="item-list"></ul>
-        </div>
+        <div id="projects-section" class="section"><div id="projects-list-view"><h2>Projectes <button class="btn btn-success new-btn" data-type="project">Nou Projecte</button></h2><div class="table-wrapper"><table class="data-table"><thead><tr><th>Títol</th><th>Estat</th><th class="actions-cell">Accions</th></tr></thead><tbody id="projects-list"></tbody></table></div><div id="projects-pagination" class="pagination"></div></div><div id="projects-editor-view" class="editor-view"></div></div>
+        <div id="apps-section" class="section"><div id="apps-list-view"><h2>Aplicacions <button class="btn btn-success new-btn" data-type="app">Nova App</button></h2><div class="table-wrapper"><table class="data-table"><thead><tr><th>Títol</th><th>Estat</th><th class="actions-cell">Accions</th></tr></thead><tbody id="apps-list"></tbody></table></div><div id="apps-pagination" class="pagination"></div></div><div id="apps-editor-view" class="editor-view"></div></div>
+        <div id="blog-section" class="section"><div id="blog-list-view"><h2>Bloc <button class="btn btn-success new-btn" data-type="blog">Nova Entrada</button></h2><div class="table-wrapper"><table class="data-table"><thead><tr><th>Títol</th><th>Estat</th><th class="actions-cell">Accions</th></tr></thead><tbody id="blog-list"></tbody></table></div><div id="blog-pagination" class="pagination"></div></div><div id="blog-editor-view" class="editor-view"></div></div>
     </div>
+
+    <div id="media-modal-overlay" class="media-modal-overlay"><div class="media-modal-content"><div class="media-modal-header"><h2>Mediateca</h2><span id="media-modal-close" class="media-modal-close">&times;</span></div><div id="media-grid" class="media-grid"></div><div class="upload-area"><form id="upload-form"><h4>Pujar nova imatge</h4><input type="file" name="image" id="image-input" accept="image/*" required><button type="submit" class="btn btn-primary">Pujar</button></form></div></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const API_URL = '/api';
+            let currentPages = { projects: 1, apps: 1, blog: 1 };
+            let tinyMceCallback = null;
+            let featuredImageTarget = null;
+            
+            const getPluralType = (type) => type === 'blog' ? 'blog' : type + 's';
 
-            // Funció per carregar totes les dades
-            const loadData = async () => {
-                const response = await fetch(`${API_URL}/data`);
-                const data = await response.json();
-                
-                renderList('projects', data.projects);
-                renderList('apps', data.apps);
-                renderList('blog', data.blog);
+            const createFormHTML = (type) => {
+                const isBlog = type === 'blog';
+                return `
+                    <form id="${type}-form" class="editor-form" novalidate>
+                        <h3 id="${type}-form-title"></h3><input type="hidden" id="${type}-id">
+                        <div class="form-grid">
+                            <div class="form-fields">
+                                <label>Títol</label><input type="text" id="${type}-title" required>
+                                ${isBlog ? `<label>Data</label><input type="date" id="${type}-date" required>` : `<label>URL del Projecte/App</label><input type="url" id="${type}-url">`}
+                                <label>Estat</label><select id="${type}-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select>
+                            </div>
+                            <div class="featured-image-control">
+                                <label>Imatge Destacada</label><input type="hidden" id="${type}-imageUrl">
+                                <div id="${type}-image-preview" class="image-preview" data-type="${type}"><span>Feu clic per seleccionar</span></div>
+                            </div>
+                        </div>
+                        <div><label>${isBlog ? 'Contingut' : 'Descripció'}</label><textarea id="editor-${type}"></textarea></div>
+                        <div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="${type}">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
+                    </form>`;
+            };
+            
+            const openMediaModal = () => { document.getElementById('media-modal-overlay').style.display = 'block'; loadMedia(); };
+            const closeMediaModal = () => { document.getElementById('media-modal-overlay').style.display = 'none'; };
+
+            const loadSectionData = async (type, page) => {
+                try {
+                    const response = await fetch(`${API_URL}/data/${type}?page=${page}`);
+                    if (!response.ok) throw new Error(`Error del servidor: ${response.statusText}`);
+                    const data = await response.json();
+                    renderTable(type, data.items);
+                    renderPagination(type, data.currentPage, data.totalPages);
+                    currentPages[type] = data.currentPage;
+                } catch(error) {
+                    console.error(`No s'han pogut carregar les dades per a la secció '${type}':`, error);
+                    document.getElementById(`${type}-list`).innerHTML = `<tr><td colspan="3" style="text-align:center; color: red;">Error en carregar les dades. Revisa la consola del servidor.</td></tr>`;
+                }
             };
 
-            // Funció per renderitzar una llista d'elements
-            const renderList = (type, items) => {
+            const renderTable = (type, items) => {
                 const list = document.getElementById(`${type}-list`);
                 list.innerHTML = '';
+                if (!items || items.length === 0) { list.innerHTML = `<tr><td colspan="3" style="text-align:center;">No hi ha entrades.</td></tr>`; return; }
                 items.forEach(item => {
-                    const li = document.createElement('li');
-                    li.className = 'item';
-                    li.innerHTML = `
-                        <div class="item-content">
-                            <strong>${item.title}</strong>
-                            <p>${item.description || item.content.substring(0, 100) + '...'}</p>
-                        </div>
-                        <div>
-                            <button class="edit-btn" onclick="editItem('${type.slice(0, -1)}', ${item.id})">Editar</button>
-                            <button class="delete-btn" onclick="deleteItem('${type.slice(0, -1)}', ${item.id})">Esborrar</button>
-                        </div>
-                    `;
-                    list.appendChild(li);
+                    let typeSingular = (type === 'blog') ? 'blog' : type.slice(0, -1);
+                    const statusLabel = item.status === 'published' ? 'Publicat' : 'Esborrany';
+                    const statusClass = item.status === 'published' ? 'status-published' : 'status-draft';
+                    list.innerHTML += `
+                        <tr data-id="${item.id}">
+                            <td>${item.title || '(Sense títol)'}</td>
+                            <td><span class="status-label ${statusClass}">${statusLabel}</span></td>
+                            <td class="actions-cell">
+                                <label class="status-switch"><input type="checkbox" class="status-toggle" data-type="${typeSingular}" ${item.status === 'published' ? 'checked' : ''}><span class="slider"></span></label>
+                                <button class="btn btn-sm btn-warning edit-btn" data-type="${typeSingular}">Editar</button>
+                                <button class="btn btn-sm btn-danger delete-btn" data-type="${typeSingular}">Esborrar</button>
+                            </td>
+                        </tr>`;
                 });
             };
+            
+            const renderPagination = (type, currentPage, totalPages) => {
+                const container = document.getElementById(`${type}-pagination`);
+                if (totalPages <= 1) { container.innerHTML = ''; return; }
+                container.innerHTML = `<button class="btn btn-secondary" data-type="${type}" ${currentPage === 1 ? 'disabled' : ''} data-page="${currentPage - 1}">&laquo; Anterior</button><span>Pàgina ${currentPage} de ${totalPages}</span><button class="btn btn-secondary" data-type="${type}" ${currentPage === totalPages ? 'disabled' : ''} data-page="${currentPage + 1}">Següent &raquo;</button>`;
+            };
+            
+            const switchView = (type, view) => {
+                const pluralType = getPluralType(type);
+                document.getElementById(`${pluralType}-list-view`).style.display = view === 'list' ? 'block' : 'none';
+                document.getElementById(`${pluralType}-editor-view`).style.display = view === 'editor' ? 'block' : 'none';
+                if(view === 'editor') document.getElementById(`${pluralType}-section`).scrollIntoView({ behavior: 'smooth' });
+            };
 
-            // Gestionar l'enviament de formularis
-            const handleFormSubmit = async (event, type) => {
-                event.preventDefault();
-                const form = event.target;
-                const id = form.querySelector(`#${type}-id`).value;
-                
-                let body = {};
-                if (type === 'project' || type === 'app') {
-                    body = {
-                        title: form.querySelector(`#${type}-title`).value,
-                        description: form.querySelector(`#${type}-description`).value,
-                        url: form.querySelector(`#${type}-url`).value
-                    };
-                } else if (type === 'blog') {
-                    body = {
-                        title: form.querySelector(`#${type}-title`).value,
-                        content: form.querySelector(`#${type}-content`).value,
-                        date: form.querySelector(`#${type}-date`).value
-                    };
-                }
-
-                const method = id ? 'PUT' : 'POST';
-                const url = id ? `${API_URL}/edit/${type}/${id}` : `${API_URL}/add/${type}`;
-
-                await fetch(url, {
-                    method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(body)
-                });
-
+            const showEditor = async (type, itemId = null) => {
+                const form = document.getElementById(`${type}-form`);
                 form.reset();
-                loadData();
-            };
+                tinymce.get(`editor-${type}`).setContent('');
+                const preview = document.getElementById(`${type}-image-preview`);
+                preview.style.backgroundImage = 'none';
+                preview.querySelector('span').style.display = 'block';
+                document.getElementById(`${type}-imageUrl`).value = '';
 
-            document.getElementById('project-form').addEventListener('submit', (e) => handleFormSubmit(e, 'project'));
-            document.getElementById('app-form').addEventListener('submit', (e) => handleFormSubmit(e, 'app'));
-            document.getElementById('blog-form').addEventListener('submit', (e) => handleFormSubmit(e, 'blog'));
-
-            // Funció per esborrar un element
-            window.deleteItem = async (type, id) => {
-                if (confirm('Estàs segur que vols esborrar aquest element?')) {
-                    await fetch(`${API_URL}/delete/${type}/${id}`, { method: 'DELETE' });
-                    loadData();
-                }
-            };
-
-            // Funció per carregar un element al formulari per editar-lo
-            window.editItem = async (type, id) => {
-                // Primer, obtenim totes les dades per trobar l'element específic
-                const response = await fetch(`${API_URL}/data`);
-                const data = await response.json();
-                
-                let item;
-                if(type === 'project') item = data.projects.find(p => p.id === id);
-                if(type === 'app') item = data.apps.find(a => a.id === id);
-                if(type === 'blog') item = data.blog.find(b => b.id === id);
-
-                if (!item) return;
-
-                document.getElementById(`${type}-id`).value = item.id;
-                document.getElementById(`${type}-title`).value = item.title;
-                if (type === 'project' || type === 'app') {
-                    document.getElementById(`${type}-description`).value = item.description;
-                    document.getElementById(`${type}-url`).value = item.url;
+                if (itemId) {
+                    const response = await fetch(`${API_URL}/item/${type}/${itemId}`);
+                    const item = await response.json();
+                    document.getElementById(`${type}-form-title`).textContent = `Editant: ${item.title}`;
+                    document.getElementById(`${type}-id`).value = item.id;
+                    document.getElementById(`${type}-title`).value = item.title;
+                    document.getElementById(`${type}-status`).value = item.status;
+                    if (item.imageUrl) {
+                        document.getElementById(`${type}-imageUrl`).value = item.imageUrl;
+                        preview.style.backgroundImage = `url('${item.imageUrl}')`;
+                        preview.querySelector('span').style.display = 'none';
+                    }
+                    if (type === 'blog') {
+                        document.getElementById(`${type}-date`).value = item.date;
+                        tinymce.get(`editor-blog`).setContent(item.content || '');
+                    } else {
+                        document.getElementById(`${type}-url`).value = item.url || '';
+                        tinymce.get(`editor-${type}`).setContent(item.description || '');
+                    }
                 } else {
-                    document.getElementById(`${type}-content`).value = item.content;
-                    document.getElementById(`${type}-date`).value = item.date;
+                    document.getElementById(`${type}-form-title`).textContent = `Creant Nou Element`;
+                    document.getElementById(`${type}-id`).value = '';
+                    if (type === 'blog') document.getElementById('blog-date').valueAsDate = new Date();
                 }
-                
-                window.scrollTo(0, document.getElementById(`${type}-form`).offsetTop);
+                switchView(type, 'editor');
             };
 
-            // Carrega inicial
-            loadData();
+            const init = () => {
+                ['project', 'app', 'blog'].forEach(type => {
+                    const pluralType = getPluralType(type);
+                    document.getElementById(`${pluralType}-editor-view`).innerHTML = createFormHTML(type);
+                    
+                    tinymce.init({
+                        selector: `#editor-${type}`,
+                        plugins: 'autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table help wordcount',
+                        toolbar: 'undo redo | blocks | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image | removeformat | help',
+                        height: 400,
+                        license_key: 'gpl',
+                        file_picker_types: 'image',
+                        file_picker_callback: (cb) => { 
+                            tinyMceCallback = cb; 
+                            featuredImageTarget = null; 
+                            openMediaModal(); 
+                        },
+                        relative_urls: false, remove_script_host: false,
+                    });
+
+                    document.getElementById(`${type}-form`).addEventListener('submit', async (e) => {
+                        e.preventDefault();
+                        const id = document.getElementById(`${type}-id`).value;
+                        const isBlog = type === 'blog';
+                        const body = {
+                            title: document.getElementById(`${type}-title`).value,
+                            imageUrl: document.getElementById(`${type}-imageUrl`).value,
+                            status: document.getElementById(`${type}-status`).value,
+                            [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(),
+                            [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value
+                        };
+                        const method = id ? 'PUT' : 'POST';
+                        const url = id ? `${API_URL}/edit/${type}/${id}` : `${API_URL}/add/${type}`;
+                        
+                        await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+                        switchView(type, 'list');
+                        loadSectionData(pluralType, id ? currentPages[pluralType] : 1);
+                    });
+                });
+
+                document.body.addEventListener('click', async (e) => {
+                    const target = e.target;
+                    const closest = (selector) => target.closest(selector);
+                    let btn;
+
+                    if (btn = closest('.new-btn')) { showEditor(btn.dataset.type); }
+                    else if (btn = closest('.cancel-btn')) { switchView(btn.dataset.type, 'list'); }
+                    else if (btn = closest('.edit-btn')) { showEditor(btn.dataset.type, closest('tr').dataset.id); }
+                    else if (btn = closest('.delete-btn')) {
+                        const row = closest('tr');
+                        if (confirm('Estàs segur?')) {
+                            await fetch(`${API_URL}/delete/${btn.dataset.type}/${row.dataset.id}`, { method: 'DELETE' });
+                            const pluralType = getPluralType(btn.dataset.type);
+                            loadSectionData(pluralType, currentPages[pluralType]);
+                        }
+                    } else if (btn = closest('.pagination button')) {
+                        loadSectionData(btn.dataset.type, parseInt(btn.dataset.page));
+                    } else if (btn = closest('.image-preview')) {
+                        featuredImageTarget = btn.dataset.type;
+                        tinyMceCallback = null;
+                        openMediaModal();
+                    } else if (target.classList.contains('status-toggle')) {
+                        const row = closest('tr');
+                        const type = target.dataset.type;
+                        const newStatus = target.checked ? 'published' : 'draft';
+                        await fetch(`${API_URL}/status/${type}/${row.dataset.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
+                        const pluralType = getPluralType(type);
+                        loadSectionData(pluralType, currentPages[pluralType]);
+                    }
+                });
+
+                document.getElementById('open-media-btn').addEventListener('click', () => { featuredImageTarget = null; tinyMceCallback = null; openMediaModal(); });
+                document.getElementById('media-modal-close').addEventListener('click', closeMediaModal);
+
+                document.getElementById('upload-form').addEventListener('submit', async e => {
+                    e.preventDefault();
+                    const formData = new FormData(e.target);
+                    const response = await fetch('/api/upload', { method: 'POST', body: formData });
+                    const data = await response.json();
+                    
+                    if (tinyMceCallback) {
+                        tinyMceCallback(data.url, { alt: 'Imatge' });
+                        closeMediaModal();
+                    } else if (featuredImageTarget) {
+                        const type = featuredImageTarget;
+                        document.getElementById(`${type}-imageUrl`).value = data.url;
+                        const preview = document.getElementById(`${type}-image-preview`);
+                        preview.style.backgroundImage = `url('${data.url}')`;
+                        preview.querySelector('span').style.display = 'none';
+                        closeMediaModal();
+                    } else {
+                        loadMedia();
+                    }
+                    e.target.reset();
+                });
+
+                loadSectionData('projects', 1);
+                loadSectionData('apps', 1);
+                loadSectionData('blog', 1);
+            };
+
+            const loadMedia = async () => {
+                const response = await fetch('/api/media');
+                const imageUrls = await response.json();
+                const mediaGrid = document.getElementById('media-grid');
+                mediaGrid.innerHTML = '';
+                imageUrls.forEach(url => {
+                    const img = document.createElement('img');
+                    img.src = url;
+                    img.addEventListener('click', () => {
+                        if (tinyMceCallback) {
+                            tinyMceCallback(url, { alt: 'Imatge' });
+                            closeMedia-modal();
+                        } else if (featuredImageTarget) {
+                            const type = featuredImageTarget;
+                            document.getElementById(`${type}-imageUrl`).value = url;
+                            const preview = document.getElementById(`${type}-image-preview`);
+                            preview.style.backgroundImage = `url('${url}')`;
+                            preview.querySelector('span').style.display = 'none';
+                            closeMediaModal();
+                        }
+                    });
+                    mediaGrid.appendChild(img);
+                });
+            };
+
+            init();
         });
     </script>
-
 </body>
 </html>
