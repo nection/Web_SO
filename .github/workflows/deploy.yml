@@ -1,0 +1,40 @@
+# Nom del procés que veuràs a GitHub
+name: Desplegament Segur i Automàtic al Servidor NUC
+
+# Quan s'ha d'executar?
+on:
+  # Cada cop que facis un 'push' a la branca 'main'
+  push:
+    branches:
+      - main
+
+# Quines tasques ha de fer?
+jobs:
+  deploy:
+    # On s'executa aquesta automatització (als servidors de GitHub)
+    runs-on: ubuntu-latest
+
+    steps:
+      # Pas 1: Connexió i execució de comandes al teu servidor
+      - name: Connectar, actualitzar i reiniciar el servidor
+        uses: appleboy/ssh-action@master
+        with:
+          # Agafem les dades dels secrets que has configurat
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 2244 # <--- Port segur que hem configurat
+          
+          # Aquestes són les comandes que s'executaran al teu servidor
+          script: |
+            # Anem a la carpeta del teu projecte
+            cd ~/projectes/Web_SO
+            
+            # Descarreguem els últims canvis des de GitHub
+            git pull origin main
+            
+            # Instal·lem dependències de forma eficient (només les de producció)
+            npm ci --production
+            
+            # Reiniciem l'aplicació amb PM2 per aplicar els canvis
+            pm2 restart web-so
