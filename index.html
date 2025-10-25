@@ -1,47 +1,59 @@
 <!DOCTYPE html>
 <html lang="ca">
-    <style>
-    .clippy, .clippy-balloon {
-        position: fixed;
-        z-index: 1000;
-        cursor: pointer;
-    }
-    .clippy-balloon {
-        background: #FFC;
-        color: black;
-        padding: 8px;
-        border: 1px solid black;
-        border-radius: 5px;
-    }
-    .clippy-content {
-        max-width: 200px;
-        min-width: 120px;
-        font-family: "Microsoft Sans", sans-serif;
-        font-size: 10pt;
-    }
-    .clippy-tip {
-        width: 10px;
-        height: 16px;
-        background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAgCAMAAAAlvKiEAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAAlQTFRF///MAAAA////52QwgAAAAAN0Uk5T//8A18oNQQAAAGxJREFUeNqs0kEOwCAIRFHn3//QTUU6xMyyxii+jQosrTPkyPEM6IN3FtzIRk1U4dFeKWQiH6pRRowMVKEmvronEynkwj0uZJgR22+YLopPSo9P34wJSamLSU7lSIWLJU7NkNomNlhqxUeAAQC+TQLZyEuJBwAAAABJRU5ErkJggg==) no-repeat;
-        position: absolute;
-    }
-    .clippy-top-left .clippy-tip { top: 100%; margin-top: 0px; left: 100%; margin-left: -50px; }
-    .clippy-top-right .clippy-tip { top: 100%; margin-top: 0px; left: 0; margin-left: 50px; background-position: -10px 0; }
-    .clippy-bottom-right .clippy-tip { top: 0; margin-top: -16px; left: 0; margin-left: 50px; background-position: -10px -16px; }
-    .clippy-bottom-left .clippy-tip { top: 0; margin-top: -16px; left: 100%; margin-left: -50px; background-position: 0px -16px; }
-</style>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Meu Portafolis</title>
+    
+    <!-- ====================================================== -->
+    <!-- === BLOC 1: ESTILS CSS (MODIFICAT) ==================== -->
+    <!-- ====================================================== -->
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace, sans-serif; background-color: #008080; user-select: none; }
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         #menu-bar { position: fixed; top: 0; left: 0; width: 100%; height: 25px; background: #c0c0c0; border-bottom: 2px solid #808080; display: flex; align-items: center; padding: 0 10px; box-sizing: border-box; font-size: 18px; z-index: 10000; }
-        #taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; background: #c0c0c0; border-top: 2px solid #ffffff; display: flex; align-items: center; justify-content: space-between; padding: 0 5px; box-sizing: border-box; z-index: 10000; }
-        #start-button { font-weight: bold; padding: 2px 10px; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; }
+        #taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; background: #c0c0c0; border-top: 2px solid #ffffff; display: flex; align-items: center; padding: 0 5px; box-sizing: border-box; z-index: 10000; }
+        #start-button { font-weight: bold; padding: 2px 10px; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; flex-shrink: 0; }
         #start-button:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
-        #clock { padding: 2px 10px; border: 2px inset #808080; }
+
+        #taskbar-windows {
+            flex-grow: 1;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            gap: 3px;
+            padding: 0 5px;
+            overflow: hidden;
+        }
+        
+        .taskbar-tab {
+            flex-grow: 1;
+            flex-shrink: 1;
+            min-width: 50px;
+            max-width: 160px;
+            padding: 2px 8px;
+            border: 2px solid;
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 16px;
+            text-align: left;
+        }
+
+        .taskbar-tab.active {
+            border-top-color: #808080;
+            border-left-color: #808080;
+            border-right-color: #ffffff;
+            border-bottom-color: #ffffff;
+            background-color: #e0e0e0;
+        }
+
+        #clock { padding: 2px 10px; border: 2px inset #808080; flex-shrink: 0; }
         #desktop { width: 100%; height: 100%; position: relative; padding-top: 25px; padding-bottom: 35px; box-sizing: border-box; display: flex; align-items: flex-start; padding-left: 30px; }
         #desktop-icons { display: flex; flex-direction: column; gap: 20px; padding-top: 20px; }
         .icon { width: 90px; text-align: center; cursor: pointer; color: white; padding: 5px; }
@@ -50,19 +62,35 @@
         .icon span { display: block; margin-top: 5px; white-space: nowrap; }
         .window { position: absolute; background-color: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); min-width: 350px; min-height: 250px; width: 600px; height: 450px; display: flex; flex-direction: column; }
         .window .title-bar { background-color: #000080; color: white; padding: 3px 5px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: move; height: 20px; }
-        .title-bar-buttons button { background-color: #c0c0c0; border: 1px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; font-family: 'VT323', monospace; width: 16px; height: 14px; padding: 0; margin-left: 2px; cursor: pointer; }
         
-        .window .content { 
-            flex-grow: 1; 
-            background-color: white; 
-            margin: 3px; 
-            color: black; 
-            font-size: 18px; 
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+        /* === INICI DE LA CORRECCIÓ === */
+        .title-bar-buttons {
+            display: flex; /* AQUESTA ÉS LA LÍNIA QUE HO SOLUCIONA */
         }
-        
+        .title-bar-buttons button {
+            background-color: #c0c0c0;
+            border: 1px solid;
+            border-top-color: #ffffff;
+            border-left-color: #ffffff;
+            border-right-color: #808080;
+            border-bottom-color: #808080;
+            font-family: 'VT323', monospace;
+            width: 16px;
+            height: 14px;
+            padding: 0;
+            margin-left: 2px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+        .title-bar-buttons button.minimize-btn {
+            padding-bottom: 4px; 
+        }
+        /* === FINAL DE LA CORRECCIÓ === */
+
+        .window .content { flex-grow: 1; background-color: white; margin: 3px; color: black; font-size: 18px; display: flex; flex-direction: column; overflow: hidden; }
         .resizer { position: absolute; } .resizer.n { top: -3px; left: 5px; right: 5px; height: 6px; cursor: n-resize; } .resizer.s { bottom: -3px; left: 5px; right: 5px; height: 6px; cursor: s-resize; } .resizer.e { top: 5px; bottom: 5px; right: -3px; width: 6px; cursor: e-resize; } .resizer.w { top: 5px; bottom: 5px; left: -3px; width: 6px; cursor: w-resize; } .resizer.ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; } .resizer.nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; } .resizer.se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; } .resizer.sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
         .window .content.folder-view { padding: 0; }
         
@@ -73,7 +101,7 @@
             flex-wrap: wrap;
             align-content: flex-start;
             gap: 15px;
-            padding: 15px;
+            padding: 25px 15px 15px 15px;
         }
         
         .file-card {
@@ -84,27 +112,14 @@
             border: 1px solid #ddd;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
             transition: transform 0.2s ease, box-shadow 0.2s ease;
-            
-            /* <<<< LA NOVA REGLA D'OR >>>> */
-            flex-grow: 1;         /* Permet créixer per omplir espai */
-            flex-shrink: 0;       /* PROHIBIT ENCONGIR-SE */
-            flex-basis: 260px;    /* Mida base ideal */
-            max-width: 300px;     /* PROHIBIT CRÉIXER MÉS ENLLÀ D'AIXÒ */
+            flex-grow: 1;
+            flex-shrink: 0;
+            flex-basis: 260px;
+            max-width: 300px;
         }
         
-        .file-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-        }
-        
-        .card-image {
-            width: 100%;
-            height: 120px;
-            background-color: #e9ecef;
-            background-size: cover;
-            background-position: center;
-        }
-        
+        .file-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
+        .card-image { width: 100%; height: 120px; background-color: #e9ecef; background-size: cover; background-position: center; }
         .card-image-placeholder { display: flex; align-items: center; justify-content: center; font-size: 3em; color: #adb5bd; height: 100%; }
         .card-body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #495057; }
         .card-body h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin: 0 0 8px 0; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -114,11 +129,10 @@
         .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; }
         .search-input { width: 100%; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
     </style>
-
-    <!-- ÚNICA ADDICIÓ AL HEAD: CSS de la llibreria Clippy.js -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pi0/clippyjs/assets/clippy.css">
 </head>
-<body>
+
+   <body>
 
     <div id="menu-bar"><span><b>El Meu Portafolis</b> v3.1</span></div>
     <div id="desktop">
@@ -129,14 +143,28 @@
             <div class="icon" id="icon-blog" tabindex="0"><img src="carpeta.png" alt="Arxiu de Bloc"><span>Bloc</span></div>
         </div>
     </div>
-    <div id="taskbar"><div id="start-button">Inici</div><div id="clock"></div></div>
+    <div id="taskbar">
+        <div id="start-button">Inici</div>
+        <div id="taskbar-windows"></div>
+        <div id="clock"></div>
+    </div>
 
+    <!-- ====================================================== -->
+    <!-- === BLOC 2: SCRIPT PRINCIPAL (MODIFICAT) ============= -->
+    <!-- ====================================================== -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             let zIndexCounter = 10;
             const desktop = document.getElementById('desktop');
             let dataCache = null;
             let windowCascadeCount = 0;
+            const folderPositions = {};
+            let nextFolderPositionIndex = 0;
+            const presetFolderPositions = [
+                { top: 40, left: 20 },
+                { top: 70, left: 180 },
+                { top: 100, left: 90 }
+            ];
 
             const welcomeContentHTML = `
                 <h1>Benvingut/da al meu Portafolis Interactiu!</h1>
@@ -146,6 +174,7 @@
                     <li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen. Dins veuràs targetes amb imatges i resums.</li>
                     <li><b>Obre els arxius:</b> Un cop dins d'una carpeta, fes doble clic sobre qualsevol targeta per llegir el contingut complet en una nova finestra.</li>
                     <li><b>Gestiona el teu espai:</b> Pots arrossegar les finestres per organitzar l'escriptori. També pots redimensionar-les des de qualsevol costat o cantonada.</li>
+                    <li><b>Minimitza finestres:</b> Utilitza el botó "_" per amagar una finestra a la barra de tasques i recuperar-la més tard fent-hi clic.</li>
                     <li><b>Cerca Global:</b> A dins de cada carpeta, trobaràs una barra de cerca per filtrar els arxius ràpidament.</li>
                 </ul>
                 <p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p>
@@ -157,31 +186,108 @@
                 dataCache = await response.json();
                 return dataCache;
             };
+
+            const updateActiveState = (windowId) => {
+                document.querySelectorAll('.window').forEach(win => {
+                    win.classList.toggle('active', win.id === windowId);
+                });
+                document.querySelectorAll('.taskbar-tab').forEach(tb => {
+                    tb.classList.toggle('active', tb.dataset.windowId === windowId);
+                });
+            };
             
             const createWindow = (id, title, contentHTML, options = {}) => {
                 const existingWindow = document.getElementById(id);
-                if (existingWindow) { existingWindow.style.zIndex = zIndexCounter++; return; }
+                if (existingWindow) {
+                    existingWindow.style.display = 'flex';
+                    existingWindow.style.zIndex = zIndexCounter++;
+                    updateActiveState(id);
+                    return;
+                }
                 const win = document.createElement('div');
                 win.id = id; win.className = 'window';
                 const winWidth = parseInt(options.width || '600px', 10);
                 const winHeight = parseInt(options.height || '450px', 10);
                 win.style.width = `${winWidth}px`; win.style.height = `${winHeight}px`;
-                if (options.pos?.left && options.pos?.top) { win.style.left = options.pos.left; win.style.top = options.pos.top; } else {
-                    const desktopWidth = desktop.offsetWidth; const desktopHeight = desktop.offsetHeight; const offset = (windowCascadeCount % 10) * 30;
-                    let left = 20 + offset; let top = 20 + offset;
-                    if (left + winWidth > desktopWidth) left = Math.max(10, desktopWidth - winWidth - 20);
-                    if (top + winHeight > desktopHeight) top = Math.max(10, desktopHeight - winHeight - 20);
+                
+                if (options.pos?.left && options.pos?.top) { 
+                    win.style.left = options.pos.left; win.style.top = options.pos.top; 
+                } else if (options.isFolder) {
+                    let pos;
+                    if (folderPositions[id]) {
+                        pos = folderPositions[id];
+                    } else {
+                        pos = presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length];
+                        folderPositions[id] = pos;
+                        nextFolderPositionIndex++;
+                    }
+                    const desktopWidth = desktop.offsetWidth;
+                    const desktopHeight = desktop.offsetHeight;
+                    let finalLeft = pos.left;
+                    let finalTop = pos.top;
+                    if (finalLeft + winWidth > desktopWidth) { finalLeft = Math.max(10, desktopWidth - winWidth - 20); }
+                    if (finalTop + winHeight > desktopHeight) { finalTop = Math.max(10, desktopHeight - winHeight - 20); }
+                    win.style.left = `${finalLeft}px`; win.style.top = `${finalTop}px`;
+                } else {
+                    const offset = (windowCascadeCount % 10) * 30;
+                    let left = 40 + offset; let top = 40 + offset;
+                    if (left + winWidth > desktop.offsetWidth) left = Math.max(10, desktop.offsetWidth - winWidth - 20);
+                    if (top + winHeight > desktop.offsetHeight) top = Math.max(10, desktop.offsetHeight - winHeight - 20);
                     win.style.left = `${left}px`; win.style.top = `${top}px`;
                     windowCascadeCount++;
                 }
+
                 win.style.zIndex = zIndexCounter++;
-                win.innerHTML = `<div class="title-bar"><span class="title">${title}</span><div class="title-bar-buttons"><button class="close-btn">x</button></div></div><div class="content ${options.contentClass || ''}">${contentHTML}</div><div class="resizer n"></div><div class="resizer s"></div><div class="resizer e"></div><div class="resizer w"></div><div class="resizer ne"></div><div class="resizer nw"></div><div class="resizer se"></div><div class="resizer sw"></div>`;
+                win.innerHTML = `<div class="title-bar"><span class="title">${title}</span><div class="title-bar-buttons"><button class="minimize-btn">_</button><button class="close-btn">x</button></div></div><div class="content ${options.contentClass || ''}">${contentHTML}</div><div class="resizer n"></div><div class="resizer s"></div><div class="resizer e"></div><div class="resizer w"></div><div class="resizer ne"></div><div class="resizer nw"></div><div class="resizer se"></div><div class="resizer sw"></div>`;
                 desktop.appendChild(win);
-                makeDraggable(win); makeResizable(win); 
-                win.querySelector('.close-btn').addEventListener('click', () => win.remove());
-                win.addEventListener('mousedown', () => win.style.zIndex = zIndexCounter++);
+                
+                const taskbar = document.getElementById('taskbar-windows');
+                const tab = document.createElement('div');
+                tab.className = 'taskbar-tab';
+                tab.textContent = title;
+                tab.dataset.windowId = id;
+                taskbar.appendChild(tab);
+
+                updateActiveState(id);
+                
+                makeDraggable(win); makeResizable(win);
+
+                win.querySelector('.close-btn').addEventListener('click', () => {
+                    win.remove();
+                    tab.remove();
+                });
+                
+                win.querySelector('.minimize-btn').addEventListener('click', () => {
+                    win.style.display = 'none';
+                    tab.classList.remove('active');
+                });
+
+                win.addEventListener('mousedown', () => {
+                    win.style.zIndex = zIndexCounter++;
+                    updateActiveState(id);
+                });
+
+                tab.addEventListener('click', () => {
+                    const isMinimized = win.style.display === 'none';
+                    const isActive = tab.classList.contains('active');
+                    if (isMinimized) {
+                        win.style.display = 'flex';
+                        win.style.zIndex = zIndexCounter++;
+                        updateActiveState(id);
+                    } else {
+                        if (isActive) {
+                            win.style.display = 'none';
+                            tab.classList.remove('active');
+                        } else {
+                            win.style.zIndex = zIndexCounter++;
+                            updateActiveState(id);
+                        }
+                    }
+                });
+                
                 if (options.isFolder) { win.querySelector('.files-container').addEventListener('dblclick', handleOpenFile); }
             };
+
             const handleOpenFile = async (event) => {
                 const fileCard = event.target.closest('.file-card'); if (!fileCard) return;
                 const { type, id } = fileCard.dataset; const numericId = parseInt(id, 10);
@@ -197,6 +303,7 @@
                 createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
             };
             const stripHtml = (html) => { let tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ""; }
+
             const createFolderWindow = async (type, windowTitle) => {
                 const data = await fetchData(); 
                 const items = data[getPluralType(type)] || [];
@@ -209,9 +316,17 @@
                 });
                 const content = `<div class="search-bar-container"><input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca..."></div><div class="files-container" id="${type}-files-container">${filesHTML}</div>`;
                 
-                createWindow(`window-${getPluralType(type)}`, windowTitle, content, { isFolder: true, contentClass: 'folder-view', width: '850px', height: '550px' });
+                const windowOptions = { 
+                    isFolder: true, 
+                    contentClass: 'folder-view', 
+                    width: '870px', 
+                    height: '550px' 
+                };
+                
+                createWindow(`window-${getPluralType(type)}`, windowTitle, content, windowOptions);
                 document.getElementById(`${type}-search-input`).addEventListener('input', (event) => handleSearch(event, type));
             };
+
             document.getElementById('icon-projects').addEventListener('dblclick', () => createFolderWindow('project', 'Projectes'));
             document.getElementById('icon-apps').addEventListener('dblclick', () => createFolderWindow('app', 'Aplicacions'));
             document.getElementById('icon-blog').addEventListener('dblclick', () => createFolderWindow('blog', 'Bloc'));
@@ -222,12 +337,10 @@
                 const containerId = `${type}-files-container`;
                 const allFiles = document.querySelectorAll(`#${containerId} .file-card`);
                 const items = dataCache[getPluralType(type)];
-                
                 allFiles.forEach(fileCard => {
                     const id = parseInt(fileCard.dataset.id, 10); 
                     const item = items.find(i => i.id === id); 
                     if (!item) return;
-                    
                     const searchableText = stripHtml(`${item.title} ${item.description || item.content} ${item.date || ''}`).toLowerCase();
                     fileCard.style.display = searchableText.includes(query) ? '' : 'none';
                 });
@@ -248,104 +361,73 @@
             showWelcomeWindow();
         });
     </script>
-
-    <!-- Llibreries per a Clippy (ARA SÍ) -->
-<script src="https://unpkg.com/jquery@3.2.1"></script> <!-- jQuery és necessari -->
-<script src="clippy.js"></script> <!-- El motor que hem descarregat -->
-<script src="/agents/Clippy/sounds-ogg.js"></script>
-<script src="/agents/Clippy/agent.js"></script>
-
-<!-- Finalment, el nostre script de control -->
-<script>
-    // Li diem a la llibreria on trobar la carpeta 'agents'
-    window.CLIPPY_CDN = '/agents/';
-
-    clippy.load('Clippy', function(agent) {
-        agent.moveTo(50, window.innerHeight - 150);
-        agent.show();
-
-        setTimeout(function() {
-            agent.speak('Perdona la tardança! Tenia els papers desordenats.');
-            agent.animate();
-        }, 2000);
-
-        function askClippy() {
-    if (!window.clippyAgent) return;
-
-    // 1. Creem l'HTML per a la caixa de text i el botó
-    const inputHtml = `
-        <div>Què t'agradaria saber?<br>
-            <input type="text" id="clippy-prompt-input" style="width: 160px; margin-top: 5px; font-family: 'Microsoft Sans', sans-serif; font-size: 10pt;">
-            <button id="clippy-prompt-button" style="font-family: 'Microsoft Sans', sans-serif; font-size: 10pt;">Enviar</button>
-        </div>
-    `;
-
-    // 2. Li diem a en Clippy que "digui" aquest HTML. Això crearà el formulari dins del globus.
-    window.clippyAgent.speak(inputHtml);
-
-    // 3. IMPORTANT: Ara que l'HTML existeix a la pàgina, busquem el botó i la caixa de text per afegir-los funcionalitat.
-    setTimeout(function() {
-        const sendButton = document.getElementById('clippy-prompt-button');
-        const inputField = document.getElementById('clippy-prompt-input');
-
-        if (!sendButton || !inputField) return;
-
-        // Posem el focus a la caixa de text
-        inputField.focus();
-        
-        // 4. Aquesta funció s'executarà quan es premi el botó o la tecla Enter
-        async function submitQuery() {
-            const userPrompt = inputField.value;
-
-            if (userPrompt && userPrompt.trim() !== '') {
-                // Desactivem el botó per evitar múltiples clics
-                sendButton.disabled = true;
-                inputField.disabled = true;
-
-                window.clippyAgent.animate();
-                window.clippyAgent.speak('Un moment, estic pensant...');
-                try {
-                    const response = await fetch('/api/ask-clippy', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt: userPrompt })
-                    });
-                    const data = await response.json();
-                    window.clippyAgent.speak(data.reply);
-                } catch (error) {
-                    window.clippyAgent.speak('Vaja... alguna cosa ha anat malament.');
-                } finally {
-                    // En aquest cas no aturem l'agent, simplement parlarà i tornarà a idle.
-                }
-            } else {
-                window.clippyAgent.speak("No has escrit res. Prova de nou!");
-            }
-        }
-
-        // Assignem la funció a l'esdeveniment 'click' del botó
-        sendButton.addEventListener('click', submitQuery);
-
-        // Assignem la funció a l'esdeveniment 'keypress' per a la tecla Enter
-        inputField.addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                submitQuery();
-            }
-        });
-
-    }, 100); // Donem un petit marge de 100ms perquè el globus es dibuixi
-}
-
-        // Listener per fer clic
-        document.querySelector('body').addEventListener('click', function (e) {
-            if (e.target.closest && e.target.closest('.clippy')) {
-                askClippy();
-            }
-        });
-    });
-</script>
-
-    <!-- ÚNIQUES ADDICIONS AL BODY: Llibreries per a Clippy -->
-    <script src="https://cdn.jsdelivr.net/gh/pi0/clippyjs/assets/clippy.min.js"></script>
+    
+    <!-- ====================================================== -->
+    <!-- === BLOC 3: SCRIPTS DE CLIPPY (SENSE CANVIS) ========= -->
+    <!-- ====================================================== -->
+    <script src="https://unpkg.com/jquery@3.2.1"></script>
     <script src="clippy.js"></script>
+    <script src="/agents/Clippy/sounds-ogg.js"></script>
+    <script src="/agents/Clippy/agent.js"></script>
+    <script>
+        window.CLIPPY_CDN = '/agents/';
+        clippy.load('Clippy', function(agent) {
+            agent.moveTo(50, window.innerHeight - 150);
+            agent.show();
+            setTimeout(function() {
+                agent.speak('Perdona la tardança! Tenia els papers desordenats.');
+                agent.animate();
+            }, 2000);
+            function askClippy() {
+                if (!window.clippyAgent) return;
+                const inputHtml = `
+                    <div>Què t'agradaria saber?<br>
+                        <input type="text" id="clippy-prompt-input" style="width: 160px; margin-top: 5px; font-family: 'Microsoft Sans', sans-serif; font-size: 10pt;">
+                        <button id="clippy-prompt-button" style="font-family: 'Microsoft Sans', sans-serif; font-size: 10pt;">Enviar</button>
+                    </div>
+                `;
+                window.clippyAgent.speak(inputHtml);
+                setTimeout(function() {
+                    const sendButton = document.getElementById('clippy-prompt-button');
+                    const inputField = document.getElementById('clippy-prompt-input');
+                    if (!sendButton || !inputField) return;
+                    inputField.focus();
+                    async function submitQuery() {
+                        const userPrompt = inputField.value;
+                        if (userPrompt && userPrompt.trim() !== '') {
+                            sendButton.disabled = true;
+                            inputField.disabled = true;
+                            window.clippyAgent.animate();
+                            window.clippyAgent.speak('Un moment, estic pensant...');
+                            try {
+                                const response = await fetch('/api/ask-clippy', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ prompt: userPrompt })
+                                });
+                                const data = await response.json();
+                                window.clippyAgent.speak(data.reply);
+                            } catch (error) {
+                                window.clippyAgent.speak('Vaja... alguna cosa ha anat malament.');
+                            }
+                        } else {
+                            window.clippyAgent.speak("No has escrit res. Prova de nou!");
+                        }
+                    }
+                    sendButton.addEventListener('click', submitQuery);
+                    inputField.addEventListener('keypress', function(e) {
+                        if (e.key === 'Enter') {
+                            submitQuery();
+                        }
+                    });
+                }, 100);
+            }
+            document.querySelector('body').addEventListener('click', function (e) {
+                if (e.target.closest && e.target.closest('.clippy')) {
+                    askClippy();
+                }
+            });
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/gh/pi0/clippyjs/assets/clippy.min.js"></script>
 </body>
-</html>
