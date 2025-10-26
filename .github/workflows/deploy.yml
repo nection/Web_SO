@@ -1,40 +1,44 @@
 # Nom del procés que veuràs a GitHub
 name: Desplegament Segur i Automàtic al Servidor NUC
 
-# Quan s'ha d'executar?
+# Aquesta acció s'activa cada cop que fas un 'push' a la branca 'main'
 on:
-  # Cada cop que facis un 'push' a la branca 'main'
   push:
     branches:
       - main
 
-# Quines tasques ha de fer?
+# Defineix les tasques que s'han d'executar
 jobs:
   deploy:
-    # On s'executa aquesta automatització (als servidors de GitHub)
+    # L'automatització s'executa en un servidor de GitHub amb Ubuntu
     runs-on: ubuntu-latest
 
+    # Defineix els passos del procés
     steps:
-      # Pas 1: Connexió i execució de comandes al teu servidor
+      # Aquest és l'únic pas: connectar-se al teu servidor i executar les comandes
       - name: Connectar, actualitzar i reiniciar el servidor
+        # Usem una acció pre-feta per facilitar la connexió SSH
         uses: appleboy/ssh-action@master
         with:
-          # Agafem les dades dels secrets que has configurat
+          # Agafem les dades dels secrets que has configurat al teu repositori
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 2244 # <--- Port segur que hem configurat
           
-          # Aquestes són les comandes que s'executaran al teu servidor
+          # Aquestes són les comandes que s'executaran al teu servidor, una darrere l'altra
           script: |
-            # Anem a la carpeta del teu projecte
+            # 1. Anem a la carpeta del teu projecte
             cd ~/projectes/Web_SO
             
-            # Descarreguem els últims canvis des de GitHub
-            git pull origin main
+            # 2. Descarreguem l'últim estat del repositori remot sense intentar fusionar
+            git fetch origin main
             
-            # Instal·lem dependències de forma eficient (només les de producció)
+            # 3. Forcem que la còpia local sigui un clon exacte de la remota, descartant qualsevol canvi local
+            git reset --hard origin/main
+            
+            # 4. Instal·lem les dependències de forma neta i només les de producció
             npm ci --production
             
-            # Reiniciem l'aplicació amb PM2 per aplicar els canvis
+            # 5. Reiniciem l'aplicació amb PM2 per aplicar tots els canvis
             pm2 restart web-so
