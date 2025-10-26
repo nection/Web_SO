@@ -1,0 +1,20 @@
+# Dependències de Node.js. Mai s'han de pujar.
+node_modules/
+
+# Base de dades de SQLite. CRÍTIC.
+portfolio.db
+
+# Carpetes amb arxius pujats pels usuaris. CRÍTIC.
+pujades/
+uploads/
+
+# Fitxers de configuració d'entorn (bona pràctica per a secrets)
+.env
+
+# Logs i fitxers de depuració
+npm-debug.log*
+*.log
+
+# Fitxers de metadades del sistema operatiu
+# macOS
+.DS_Store
