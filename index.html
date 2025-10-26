@@ -5,9 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>El Meu Portafolis</title>
     
-    <!-- ====================================================== -->
-    <!-- === BLOC 1: ESTILS CSS =============================== -->
-    <!-- ====================================================== -->
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace, sans-serif; background-color: #008080; user-select: none; }
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
@@ -41,17 +38,41 @@
         .card-body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #495057; }
         .card-body h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin: 0 0 8px 0; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .card-body p { margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
-        .window .content.document-view { padding: 40px 50px; font-family: "Times New Roman", Times, serif; line-height: 1.7; color: #222; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
-        .document-view * { max-width: 100%; } .document-view img { height: auto; border: 1px solid #ccc; padding: 3px; background: #fff; margin: 10px 0; } .document-view h1 { font-family: 'VT323', monospace, sans-serif; font-size: 28px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #ccc; color: #000; } .document-view p { white-space: normal; text-align: left; } .document-view a { color: #0000ff; text-decoration: underline; } .document-view a:hover { color: #ff0000; } .document-view .date { font-style: italic; color: #666; font-size: 0.9em; margin-bottom: 20px; display: block; text-align: right; } .document-view ul, .document-view ol { padding-left: 40px; } .document-view li { margin-bottom: 10px; }
         .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; display: flex; gap: 10px; align-items: center; }
         .search-input { flex-grow: 1; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         .sort-select { padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: white; font-family: 'VT323', monospace, sans-serif; }
+        .document-view, .project-view { padding: 30px 40px; font-family: "Georgia", "Times New Roman", Times, serif; line-height: 1.7; color: #333; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; background-color: #fdfdfd; }
+        .document-view *, .project-view * { max-width: 100%; }
+        .document-view img, .project-view img { height: auto; border: 1px solid #ccc; padding: 3px; background: #fff; margin: 10px 0; }
+        .document-view h1, .project-view h1 { font-family: 'VT323', monospace, sans-serif; font-size: 32px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #ccc; color: #000; }
+        .document-view p, .project-view p { white-space: normal; text-align: left; }
+        .document-view a, .project-view a { color: #0056b3; text-decoration: none; border-bottom: 1px dotted #0056b3; }
+        .document-view a:hover, .project-view a:hover { color: #007bff; border-bottom-style: solid; }
+        .document-view .date { font-style: italic; color: #666; font-size: 0.9em; margin-bottom: 20px; display: block; text-align: right; }
+        .document-view ul, .document-view ol, .project-view ul { padding-left: 40px; }
+        .document-view li, .project-view li { margin-bottom: 10px; }
+        .project-header { margin-bottom: 25px; }
+        .project-header p { font-style: italic; color: #555; font-size: 1.1em; margin: 5px 0 15px 0; border-left: 3px solid #007bff; padding-left: 10px; }
+        .project-header .btn-visit { display: inline-block; background-color: #007bff; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; border-bottom: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-weight: bold; transition: background-color 0.2s; }
+        .project-header .btn-visit:hover { background-color: #0056b3; }
+        .project-gallery { margin-bottom: 30px; }
+        .gallery-main-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; border: 1px solid #ddd; margin-bottom: 10px; background-color: #f8f9fa; }
+        .gallery-thumbnails { display: flex; gap: 10px; flex-wrap: wrap; }
+        .gallery-thumbnails img { width: 100px; height: 60px; object-fit: cover; cursor: pointer; border: 2px solid #ddd; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
+        .gallery-thumbnails img:hover { opacity: 1; }
+        .gallery-thumbnails img.active { border-color: #007bff; opacity: 1; }
+        .project-section { margin-bottom: 30px; }
+        .project-section h3 { font-family: 'VT323', monospace, sans-serif; font-size: 24px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: #343a40; }
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 0; list-style: none; }
+        .tech-tags li { background-color: #e9ecef; color: #495057; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+        .features-list { list-style: none; padding-left: 0; }
+        .features-list li { padding: 8px 0 8px 25px; border-bottom: 1px solid #f0f0f0; position: relative; }
+        .features-list li::before { content: '✓'; color: #28a745; font-weight: bold; position: absolute; left: 0; top: 8px; }
     </style>
 </head>
 
 <body>
-
-    <div id="menu-bar"><span><b>El Meu Portafolis</b> v4.1</span></div>
+    <div id="menu-bar"><span><b>El Meu Portafolis</b> v4.2</span></div>
     <div id="desktop">
         <div id="desktop-icons">
             <div class="icon" id="icon-readme" tabindex="0"><img src="file.png" alt="Arxiu Llegeix-me"><span>Llegeix-me.txt</span></div>
@@ -66,12 +87,8 @@
         <div id="clock"></div>
     </div>
 
-    <!-- ====================================================== -->
-    <!-- === BLOC 2: SCRIPT PRINCIPAL ========================= -->
-    <!-- ====================================================== -->
     <script>
     document.addEventListener('DOMContentLoaded', () => {
-        // --- BLOC 2.1: VARIABLES D'ESTAT I CONFIGURACIÓ ---
         let zIndexCounter = 10;
         const desktop = document.getElementById('desktop');
         let windowCascadeCount = 0;
@@ -85,30 +102,17 @@
             <p>Hola! Soc <strong>[El Teu Nom]</strong>, un/a desenvolupador/a i entusiasta de la tecnologia amb ganes de crear experiències úniques.</p>
             <p>Aquesta web simula un escriptori d'un sistema operatiu clàssic. Està dissenyada per ser una forma original i divertida de mostrar els meus treballs. Aquí tens una petita guia per començar a explorar:</p>
             <ul>
-                <li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen. Dins veuràs targetes amb imatges i resums.</li>
-                <li><b>Scroll Infinit:</b> A mesura que baixis, es carregaran més elements automàticament.</li>
-                <li><b>Obre els arxius:</b> Un cop dins d'una carpeta, fes doble clic sobre qualsevol targeta per llegir el contingut complet en una nova finestra.</li>
-                <li><b>Gestiona el teu espai:</b> Pots arrossegar les finestres per organitzar l'escriptori. També pots redimensionar-les des de qualsevol costat o cantonada.</li>
-                <li><b>Minimitza finestres:</b> Utilitza el botó "_" per amagar una finestra a la barra de tasques i recuperar-la més tard fent-hi clic.</li>
-                <li><b>Cerca Instantània i Avançada:</b> Dins de cada carpeta, trobaràs una barra de cerca potent per filtrar els arxius ràpidament. La cerca és tolerant a errors i busca dins dels títols i continguts.</li>
-                <li><b>Ordena els resultats:</b> Utilitza el menú desplegable al costat de la cerca per ordenar els elements com prefereixis (per rellevància, més nous o més antics).</li>
+                <li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen.</li>
+                <li><b>Descobreix els Projectes:</b> La secció de projectes té un disseny especial per mostrar cada treball de forma atractiva, amb galeria d'imatges, tecnologies i molt més.</li>
+                <li><b>Cerca Avançada:</b> La cerca és potent i tolera errors tipogràfics. Prova d'escriure "Barceona" si un projecte conté "Barcelona"!</li>
+                <li><b>Gestiona el teu espai:</b> Pots arrossegar, redimensionar i minimitzar les finestres per organitzar el teu escriptori.</li>
             </ul>
             <p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p>
         `;
 
-        // --- BLOC 2.2: FUNCIONS PRINCIPALS DE LÒGICA ---
-
         const stripHtml = (html) => { let tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ""; }
         const getPluralType = (type) => type === 'blog' ? type : type + 's';
-
-        const debounce = (func, delay) => {
-            let timeout;
-            return function(...args) {
-                const context = this;
-                clearTimeout(timeout);
-                timeout = setTimeout(() => func.apply(context, args), delay);
-            };
-        };
+        const debounce = (func, delay) => { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
 
         const updateActiveState = (windowId) => {
             document.querySelectorAll('.window').forEach(win => win.classList.toggle('active', win.id === windowId));
@@ -129,84 +133,54 @@
             const winHeight = parseInt(options.height || '450px', 10);
             win.style.width = `${winWidth}px`; win.style.height = `${winHeight}px`;
             
-            if (options.pos?.left && options.pos?.top) { 
-                win.style.left = options.pos.left; win.style.top = options.pos.top; 
-            } else if (options.isFolder) {
-                let pos;
-                if (folderPositions[id]) { pos = folderPositions[id]; }
-                else { pos = presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length]; folderPositions[id] = pos; nextFolderPositionIndex++; }
-                const desktopWidth = desktop.offsetWidth; const desktopHeight = desktop.offsetHeight;
-                let finalLeft = pos.left; let finalTop = pos.top;
-                if (finalLeft + winWidth > desktopWidth) { finalLeft = Math.max(10, desktopWidth - winWidth - 20); }
-                if (finalTop + winHeight > desktopHeight) { finalTop = Math.max(10, desktopHeight - winHeight - 20); }
+            if (options.pos?.left && options.pos?.top) { win.style.left = options.pos.left; win.style.top = options.pos.top; }
+            else if (options.isFolder) {
+                let pos = folderPositions[id] || presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length];
+                folderPositions[id] = pos; nextFolderPositionIndex++;
+                const desktopWidth = desktop.offsetWidth, desktopHeight = desktop.offsetHeight;
+                let finalLeft = pos.left, finalTop = pos.top;
+                if (finalLeft + winWidth > desktopWidth) finalLeft = Math.max(10, desktopWidth - winWidth - 20);
+                if (finalTop + winHeight > desktopHeight) finalTop = Math.max(10, desktopHeight - winHeight - 20);
                 win.style.left = `${finalLeft}px`; win.style.top = `${finalTop}px`;
             } else {
-                const offset = (windowCascadeCount % 10) * 30;
-                let left = 40 + offset; let top = 40 + offset;
+                const offset = (windowCascadeCount++ % 10) * 30;
+                let left = 40 + offset, top = 40 + offset;
                 if (left + winWidth > desktop.offsetWidth) left = Math.max(10, desktop.offsetWidth - winWidth - 20);
                 if (top + winHeight > desktop.offsetHeight) top = Math.max(10, desktop.offsetHeight - winHeight - 20);
                 win.style.left = `${left}px`; win.style.top = `${top}px`;
-                windowCascadeCount++;
             }
 
             win.style.zIndex = zIndexCounter++;
             win.innerHTML = `<div class="title-bar"><span class="title">${title}</span><div class="title-bar-buttons"><button class="minimize-btn">_</button><button class="close-btn">x</button></div></div><div class="content ${options.contentClass || ''}">${contentHTML}</div><div class="resizer n"></div><div class="resizer s"></div><div class="resizer e"></div><div class="resizer w"></div><div class="resizer ne"></div><div class="resizer nw"></div><div class="resizer se"></div><div class="resizer sw"></div>`;
             desktop.appendChild(win);
             
-            const taskbar = document.getElementById('taskbar-windows');
             const tab = document.createElement('div');
-            tab.className = 'taskbar-tab';
-            tab.textContent = title;
-            tab.dataset.windowId = id;
-            taskbar.appendChild(tab);
+            tab.className = 'taskbar-tab'; tab.textContent = title; tab.dataset.windowId = id;
+            document.getElementById('taskbar-windows').appendChild(tab);
 
             updateActiveState(id);
             makeDraggable(win); makeResizable(win);
 
-            win.querySelector('.close-btn').addEventListener('click', () => {
-                win.remove();
-                tab.remove();
-                if (options.type) delete windowStates[options.type];
-            });
-            
-            win.querySelector('.minimize-btn').addEventListener('click', () => {
-                win.style.display = 'none';
-                tab.classList.remove('active');
-            });
-
-            win.addEventListener('mousedown', () => {
-                win.style.zIndex = zIndexCounter++;
-                updateActiveState(id);
-            });
-
+            win.querySelector('.close-btn').addEventListener('click', () => { win.remove(); tab.remove(); if (options.type) delete windowStates[options.type]; });
+            win.querySelector('.minimize-btn').addEventListener('click', () => { win.style.display = 'none'; tab.classList.remove('active'); });
+            win.addEventListener('mousedown', () => { win.style.zIndex = zIndexCounter++; updateActiveState(id); });
             tab.addEventListener('click', () => {
                 const isMinimized = win.style.display === 'none';
                 const isActive = tab.classList.contains('active');
-                if (isMinimized) {
-                    win.style.display = 'flex';
-                    win.style.zIndex = zIndexCounter++;
-                    updateActiveState(id);
-                } else {
-                    if (isActive) { win.style.display = 'none'; tab.classList.remove('active'); }
-                    else { win.style.zIndex = zIndexCounter++; updateActiveState(id); }
-                }
+                if (isMinimized || !isActive) { win.style.display = 'flex'; win.style.zIndex = zIndexCounter++; updateActiveState(id); } 
+                else { win.style.display = 'none'; tab.classList.remove('active'); }
             });
             
             if (options.isFolder) { win.querySelector('.files-container').addEventListener('dblclick', handleOpenFile); }
-
             return win;
         };
         
-        // --- BLOC 2.3: NOVA LÒGICA DE CÀRREGA DE DADES I RENDERITZAT ---
-
         const fetchWindowData = async (type) => {
             const state = windowStates[type];
             if (!state || state.isLoading || (state.currentPage > state.totalPages && state.totalPages !== 0)) return;
-
             state.isLoading = true;
             const pluralType = getPluralType(type);
             const url = `/api/public/data/${pluralType}?page=${state.currentPage}&q=${encodeURIComponent(state.query)}&sort=${state.sort}`;
-            
             try {
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Error de xarxa');
@@ -218,24 +192,19 @@
                 console.error("Error carregant dades:", error);
                 const container = document.getElementById(`${type}-files-container`);
                 if (container && state.currentPage === 1) container.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error en carregar les dades.</p>';
-            } finally {
-                state.isLoading = false;
-            }
+            } finally { state.isLoading = false; }
         };
 
         const renderWindowItems = (type, items) => {
             const container = document.getElementById(`${type}-files-container`);
             if (!container) return;
-
             if (items.length === 0 && windowStates[type].currentPage === 1) {
                 container.innerHTML = '<p style="text-align:center; width:100%; color:#666; padding-top: 20px;">No s\'han trobat resultats.</p>';
                 return;
             }
-
             let filesHTML = '';
             items.forEach(item => {
-                const contentKey = item.content ? 'content' : 'description';
-                const snippet = stripHtml(item[contentKey] || '').substring(0, 100);
+                const snippet = stripHtml(item.description || '').substring(0, 100);
                 const imageStyle = item.imageUrl ? `background-image: url('${item.imageUrl}')` : '';
                 const imagePlaceholder = !item.imageUrl ? '<div class="card-image-placeholder">🖼️</div>' : '';
                 filesHTML += `<div class="file-card" data-type="${type}" data-id="${item.id}"><div class="card-image" style="${imageStyle}">${imagePlaceholder}</div><div class="card-body"><h4>${item.title}</h4><p>${snippet}...</p></div></div>`;
@@ -246,133 +215,110 @@
         const createFolderWindow = (type, windowTitle) => {
             const pluralType = getPluralType(type);
             const windowId = `window-${pluralType}`;
+            if (document.getElementById(windowId)) { createWindow(windowId, windowTitle); return; }
+            windowStates[type] = { currentPage: 1, totalPages: 1, isLoading: false, query: '', sort: 'newest' };
+            const content = `<div class="search-bar-container"><input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca..."><select id="${type}-sort-select" class="sort-select"><option value="relevance" disabled>Rellevància</option><option value="newest" selected>Més nou</option><option value="oldest">Més antic</option></select></div><div class="files-container" id="${type}-files-container"></div>`;
             
-            if (document.getElementById(windowId)) {
-                createWindow(windowId, windowTitle); // Funció per portar al davant una finestra existent
-                return;
-            }
+            // MIDA DE LES FINESTRES DE CARPETA AUGMENTADA
+            const windowOptions = { isFolder: true, contentClass: 'folder-view', width: '920px', height: '650px', type: type };
             
-            windowStates[type] = {
-                currentPage: 1, totalPages: 1, isLoading: false,
-                query: '', sort: 'newest'
-            };
-            
-            const content = `
-                <div class="search-bar-container">
-                    <input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca...">
-                    <select id="${type}-sort-select" class="sort-select">
-                        <option value="relevance" disabled>Rellevància</option>
-                        <option value="newest" selected>Més nou</option>
-                        <option value="oldest">Més antic</option>
-                    </select>
-                </div>
-                <div class="files-container" id="${type}-files-container"></div>`;
-                
-            const windowOptions = { isFolder: true, contentClass: 'folder-view', width: '870px', height: '550px', type: type };
             createWindow(windowId, windowTitle, content, windowOptions);
-            
             const searchInput = document.getElementById(`${type}-search-input`);
             const sortSelect = document.getElementById(`${type}-sort-select`);
             const filesContainer = document.getElementById(`${type}-files-container`);
-
-            const resetAndFetch = (type) => {
+            const resetAndFetch = () => {
                 const state = windowStates[type];
-                state.currentPage = 1;
-                state.totalPages = 1;
-                filesContainer.innerHTML = '';
-                fetchWindowData(type);
+                state.currentPage = 1; state.totalPages = 1; filesContainer.innerHTML = ''; fetchWindowData(type);
             };
-
             const debouncedSearch = debounce(() => {
                 const state = windowStates[type];
-                const newQuery = searchInput.value;
-                if (state.query === newQuery) return; // No fer res si la cerca no ha canviat
-                
-                state.query = newQuery;
-                if (state.query) {
-                    state.sort = 'relevance';
-                    sortSelect.value = 'relevance';
-                    sortSelect.querySelector('option[value="relevance"]').disabled = false;
-                } else {
-                    state.sort = 'newest';
-                    sortSelect.value = 'newest';
-                    sortSelect.querySelector('option[value="relevance"]').disabled = true;
-                }
-                resetAndFetch(type);
+                state.query = searchInput.value;
+                if (state.query) { state.sort = 'relevance'; sortSelect.value = 'relevance'; sortSelect.querySelector('option[value="relevance"]').disabled = false; }
+                else { state.sort = 'newest'; sortSelect.value = 'newest'; sortSelect.querySelector('option[value="relevance"]').disabled = true; }
+                resetAndFetch();
             }, 400);
-
             searchInput.addEventListener('input', debouncedSearch);
-
-            sortSelect.addEventListener('change', () => {
-                const state = windowStates[type];
-                state.sort = sortSelect.value;
-                resetAndFetch(type);
-            });
-
-            filesContainer.addEventListener('scroll', () => {
-                if (filesContainer.scrollTop + filesContainer.clientHeight >= filesContainer.scrollHeight * 0.8) {
-                    fetchWindowData(type);
-                }
-            });
-
+            sortSelect.addEventListener('change', () => { windowStates[type].sort = sortSelect.value; resetAndFetch(); });
+            filesContainer.addEventListener('scroll', () => { if (filesContainer.scrollTop + filesContainer.clientHeight >= filesContainer.scrollHeight * 0.9) fetchWindowData(type); });
             fetchWindowData(type);
         };
         
         const handleOpenFile = async (event) => {
             const fileCard = event.target.closest('.file-card'); if (!fileCard) return;
             const { type, id } = fileCard.dataset;
-            
             try {
                 const response = await fetch(`/api/item/${type}/${id}`);
                 const item = await response.json();
                 if (!item) { console.error("No s'ha trobat l'element:", type, id); return; }
 
-                let fileContentHTML = '';
-                let fileTitle = `${item.title}.txt`;
-                let windowOptions = { contentClass: 'document-view' };
+                let fileContentHTML = '', fileTitle = `${item.title}.txt`, windowOptions = {};
 
-                if (type === 'project' || type === 'app') {
-                    fileContentHTML = item.description;
-                } else if (type === 'blog') {
-                    fileContentHTML = `<h1>${item.title}</h1><div class="date">${new Date(item.date).toLocaleDateString()}</div>${item.content}`;
-                    windowOptions.width = '700px';
-                    windowOptions.height = '840px';
+                if (type === 'project') {
+                    const data = item.data || {};
+                    const technologies = (data.technologies || []).map(tech => `<li>${tech}</li>`).join('');
+                    const features = (data.features || []).map(feature => `<li>${feature}</li>`).join('');
+                    const screenshots = data.screenshots || [];
+                    const thumbnails = screenshots.map((src, index) => `<img src="${src}" class="thumb ${index === 0 ? 'active' : ''}" data-index="${index}">`).join('');
+                    
+                    fileContentHTML = `
+                        <div class="project-header">
+                            <h1>${item.title}</h1>
+                            ${data.summary ? `<p>${data.summary}</p>` : ''}
+                            ${item.url ? `<a href="${item.url}" target="_blank" class="btn-visit">Visitar Projecte &rarr;</a>` : ''}
+                        </div>
+                        ${screenshots.length > 0 ? `
+                        <div class="project-gallery">
+                            <img src="${screenshots[0]}" id="gallery-main-${id}" class="gallery-main-image">
+                            <div class="gallery-thumbnails" id="gallery-thumbs-${id}">${thumbnails}</div>
+                        </div>` : ''}
+                        ${technologies ? `<div class="project-section"><h3>Tecnologies</h3><ul class="tech-tags">${technologies}</ul></div>` : ''}
+                        ${features ? `<div class="project-section"><h3>Característiques Clau</h3><ul class="features-list">${features}</ul></div>` : ''}
+                        ${data.description ? `<div class="project-section"><h3>Descripció</h3>${data.description}</div>` : ''}
+                    `;
+                    // MIDA DE LA FINESTRA DE PROJECTE AUGMENTADA
+                    windowOptions = { contentClass: 'project-view', width: '850px', height: '700px' };
+                } else { // Per a Blog i Apps
+                    fileContentHTML = type === 'blog'
+                        ? `<h1>${item.title}</h1><div class="date">${new Date(item.date).toLocaleDateString()}</div>${item.content}`
+                        : item.description;
+                    // MIDA DE LES FINESTRES DE DOCUMENT (BLOG/APP) AUGMENTADA
+                    windowOptions = { contentClass: 'document-view', width: '750px', height: '700px' };
                 }
-                createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
+                const win = createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
 
-            } catch(error) {
-                console.error("No s'ha pogut obrir l'arxiu:", error);
-                alert("Error: no s'ha pogut carregar el contingut d'aquest arxiu.");
-            }
+                if (type === 'project') {
+                    const mainImage = win.querySelector(`#gallery-main-${id}`);
+                    win.querySelector(`#gallery-thumbs-${id}`)?.addEventListener('click', e => {
+                        if (e.target.classList.contains('thumb')) {
+                            mainImage.src = e.target.src;
+                            win.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
+                            e.target.classList.add('active');
+                        }
+                    });
+                }
+            } catch(error) { console.error("No s'ha pogut obrir l'arxiu:", error); alert("Error: no s'ha pogut carregar el contingut d'aquest arxiu."); }
         };
-
-        // --- BLOC 2.4: FUNCIONS D'INTERFICIE I EVENTS ---
 
         const makeDraggable = (element) => { let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0; const header = element.querySelector('.title-bar'); if (header) header.onmousedown = dragMouseDown; function dragMouseDown(e) { e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; } function elementDrag(e) { e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; } function closeDragElement() { document.onmouseup = null; document.onmousemove = null; } };
         const makeResizable = (element) => { const resizers = element.querySelectorAll('.resizer'); const minimum_size = 200; let original_width = 0, original_height = 0, original_x = 0, original_y = 0; let original_mouse_x = 0, original_mouse_y = 0; resizers.forEach(resizer => { resizer.addEventListener('mousedown', (e) => { e.preventDefault(); original_width = parseFloat(getComputedStyle(element, null).getPropertyValue('width').replace('px', '')); original_height = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', '')); original_x = element.getBoundingClientRect().left; original_y = element.getBoundingClientRect().top; original_mouse_x = e.pageX; original_mouse_y = e.pageY; window.addEventListener('mousemove', resize); window.addEventListener('mouseup', stopResize); function resize(e) { if (resizer.classList.contains('se')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height + (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('sw')) { const height = original_height + (e.pageY - original_mouse_y); const width = original_width - (e.pageX - original_mouse_x); if (height > minimum_size) element.style.height = height + 'px'; if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } else if (resizer.classList.contains('ne')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('nw')) { const width = original_width - (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('n')) { const height = original_height - (e.pageY - original_mouse_y); if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('s')) { const height = original_height + (e.pageY - original_mouse_y); if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('e')) { const width = original_width + (e.pageX - original_mouse_x); if (width > minimum_size) element.style.width = width + 'px'; } else if (resizer.classList.contains('w')) { const width = original_width - (e.pageX - original_mouse_x); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } } function stopResize() { window.removeEventListener('mousemove', resize); } }); }); }
         const updateClock = () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, '0'); const minutes = String(now.getMinutes()).padStart(2, '0'); document.getElementById('clock').textContent = `${hours}:${minutes}`; }
-        
         const showWelcomeWindow = () => {
-            const desktopWidth = desktop.offsetWidth; const desktopHeight = desktop.offsetHeight; let winWidth = 600; let winHeight = 500;
+            const desktopWidth = desktop.offsetWidth, desktopHeight = desktop.offsetHeight; let winWidth = 600, winHeight = 500;
             if (winWidth > desktopWidth - 40) winWidth = desktopWidth - 40; if (winHeight > desktopHeight - 40) winHeight = desktopHeight - 40;
-            const centerLeft = (desktopWidth / 2) - (winWidth / 2); const centerTop = (desktopHeight / 2) - (winHeight / 2);
+            const centerLeft = (desktopWidth / 2) - (winWidth / 2), centerTop = (desktopHeight / 2) - (winHeight / 2);
             const options = { pos: {left: `${centerLeft}px`, top: `${centerTop}px`}, contentClass: 'document-view', width: `${winWidth}px`, height: `${winHeight}px` };
             createWindow('window-welcome', 'Benvinguda.txt', welcomeContentHTML, options);
         }
         
-        // --- BLOC 2.5: INICIALITZACIÓ ---
-
         document.getElementById('icon-projects').addEventListener('dblclick', () => createFolderWindow('project', 'Projectes'));
         document.getElementById('icon-apps').addEventListener('dblclick', () => createFolderWindow('app', 'Aplicacions'));
         document.getElementById('icon-blog').addEventListener('dblclick', () => createFolderWindow('blog', 'Bloc'));
-        document.getElementById('icon-readme').addEventListener('dblclick', () => showWelcomeWindow());
+        document.getElementById('icon-readme').addEventListener('dblclick', showWelcomeWindow);
         
-        document.querySelectorAll('.icon').forEach(icon => makeDraggable(icon));
         setInterval(updateClock, 1000); 
         updateClock();
         showWelcomeWindow();
     });
     </script>
-    
 </body>
 </html>

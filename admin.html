@@ -21,6 +21,7 @@
         button { border: none; border-radius: 5px; cursor: pointer; font-size: 1em; font-weight: 600; transition: background-color 0.2s, box-shadow 0.2s; padding: 10px 15px; }
         .btn { display: inline-block; text-align: center; vertical-align: middle; user-select: none; }
         .btn-sm { padding: 5px 10px; font-size: 0.875em; }
+        .btn-xs { padding: 2px 6px; font-size: 0.75em; }
         .btn-primary { background-color: var(--primary-color); color: white; }
         .btn-primary:hover { background-color: #0069d9; }
         .btn-secondary { background-color: #6c757d; color: white; }
@@ -42,7 +43,7 @@
         .status-draft { background-color: #6c757d; }
         .editor-form { display: flex; flex-direction: column; gap: 20px; padding: 20px; background-color: var(--light-gray); border-radius: 8px; border: 1px solid var(--border-color); }
         .editor-form h3 { margin-top: 0; color: #0056b3; }
-        .editor-form input[type="text"], .editor-form input[type="url"], .editor-form input[type="date"], .editor-form select { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; width: 100%; box-sizing: border-box; }
+        .editor-form input[type="text"], .editor-form input[type="url"], .editor-form input[type="date"], .editor-form select, .editor-form textarea { padding: 12px; border: 1px solid #ccc; border-radius: 5px; font-size: 1em; width: 100%; box-sizing: border-box; }
         .form-grid { display: grid; grid-template-columns: 1fr 220px; gap: 20px; align-items: flex-start; }
         .form-fields { display: flex; flex-direction: column; gap: 15px; }
         .form-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 10px; border-top: 1px solid var(--border-color); }
@@ -51,13 +52,15 @@
         .image-preview span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c757d; font-size: 0.9em; text-align: center; padding: 5px; }
         .image-preview:hover { border-color: var(--primary-color); }
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-        .media-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none;
-            /* <<<< CORRECCIÓ CLAU: Augmentem la prioritat per sobre de les finestres de TinyMCE */
-            z-index: 99999;
-        }
-        .media-modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; height: 80vh; background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column;
-            z-index: 999999; /* Ha de ser superior a l'overlay */
-        }
+        /* Estils per a la llista dinàmica */
+        .dynamic-list-container { display: flex; flex-direction: column; gap: 10px; }
+        .dynamic-list-item { display: flex; align-items: center; gap: 10px; }
+        .dynamic-list-item input { flex-grow: 1; }
+        .screenshot-item { align-items: flex-end; }
+        .screenshot-preview { width: 80px; height: 50px; background-size: cover; background-position: center; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .media-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 99999; }
+        .media-modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; height: 80vh; background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; z-index: 999999; }
         .media-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
         .media-modal-close { font-size: 2em; font-weight: bold; cursor: pointer; }
         .media-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 10px 0; }
@@ -84,10 +87,50 @@
             let currentPages = { projects: 1, apps: 1, blog: 1 };
             let tinyMceCallback = null;
             let featuredImageTarget = null;
+            let screenshotTarget = null;
             
             const getPluralType = (type) => type === 'blog' ? 'blog' : type + 's';
 
             const createFormHTML = (type) => {
+                if (type === 'project') {
+                    return `
+                    <form id="project-form" class="editor-form" novalidate>
+                        <h3 id="project-form-title"></h3><input type="hidden" id="project-id">
+                        <div class="form-grid">
+                            <div class="form-fields">
+                                <label>Títol del Projecte</label><input type="text" id="project-title" required>
+                                <label>URL del Projecte</label><input type="url" id="project-url">
+                                <label>Resum / Eslògan (frase curta)</label><textarea id="project-summary" rows="2"></textarea>
+                                <label>Tecnologies (separades per comes, ex: React, Node.js)</label><input type="text" id="project-technologies">
+                                <label>Estat</label><select id="project-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select>
+                            </div>
+                            <div class="featured-image-control">
+                                <label>Imatge Destacada</label><input type="hidden" id="project-imageUrl">
+                                <div id="project-image-preview" class="image-preview" data-type="project"><span>Feu clic per seleccionar</span></div>
+                            </div>
+                        </div>
+                        <div>
+                            <label>Característiques Clau</label>
+                            <div id="project-features-list" class="dynamic-list-container"></div>
+                            <button type="button" class="btn btn-sm btn-secondary" id="add-feature-btn">Afegir Característica</button>
+                        </div>
+                        <div>
+                            <label>Galeria de Captures</label>
+                            <div id="project-screenshots-list" class="dynamic-list-container"></div>
+                            <button type="button" class="btn btn-sm btn-secondary" id="add-screenshot-btn">Afegir Captura</button>
+                        </div>
+                        <div>
+                            <label>Descripció Completa</label>
+                            <textarea id="editor-project"></textarea>
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-secondary cancel-btn" data-type="project">Cancel·lar</button>
+                            <button type="submit" class="btn btn-primary">Guardar Projecte</button>
+                        </div>
+                    </form>`;
+                }
+
+                // Formulari per a Blog i Apps (el d'abans)
                 const isBlog = type === 'blog';
                 return `
                     <form id="${type}-form" class="editor-form" novalidate>
@@ -164,9 +207,16 @@
                 form.reset();
                 tinymce.get(`editor-${type}`).setContent('');
                 const preview = document.getElementById(`${type}-image-preview`);
-                preview.style.backgroundImage = 'none';
-                preview.querySelector('span').style.display = 'block';
-                document.getElementById(`${type}-imageUrl`).value = '';
+                if (preview) {
+                    preview.style.backgroundImage = 'none';
+                    preview.querySelector('span').style.display = 'block';
+                    document.getElementById(`${type}-imageUrl`).value = '';
+                }
+
+                if (type === 'project') {
+                    document.getElementById('project-features-list').innerHTML = '';
+                    document.getElementById('project-screenshots-list').innerHTML = '';
+                }
 
                 if (itemId) {
                     const response = await fetch(`${API_URL}/item/${type}/${itemId}`);
@@ -177,13 +227,23 @@
                     document.getElementById(`${type}-status`).value = item.status;
                     if (item.imageUrl) {
                         document.getElementById(`${type}-imageUrl`).value = item.imageUrl;
-                        preview.style.backgroundImage = `url('${item.imageUrl}')`;
-                        preview.querySelector('span').style.display = 'none';
+                        const mainPreview = document.getElementById(`${type}-image-preview`);
+                        mainPreview.style.backgroundImage = `url('${item.imageUrl}')`;
+                        mainPreview.querySelector('span').style.display = 'none';
                     }
-                    if (type === 'blog') {
+                    
+                    if (type === 'project') {
+                        document.getElementById('project-url').value = item.url || '';
+                        const data = item.data || {};
+                        document.getElementById('project-summary').value = data.summary || '';
+                        document.getElementById('project-technologies').value = (data.technologies || []).join(', ');
+                        tinymce.get('editor-project').setContent(data.description || '');
+                        (data.features || []).forEach(addFeature);
+                        (data.screenshots || []).forEach(addScreenshot);
+                    } else if (type === 'blog') {
                         document.getElementById(`${type}-date`).value = item.date;
                         tinymce.get(`editor-blog`).setContent(item.content || '');
-                    } else {
+                    } else { // app
                         document.getElementById(`${type}-url`).value = item.url || '';
                         tinymce.get(`editor-${type}`).setContent(item.description || '');
                     }
@@ -209,7 +269,8 @@
                         file_picker_types: 'image',
                         file_picker_callback: (cb) => { 
                             tinyMceCallback = cb; 
-                            featuredImageTarget = null; 
+                            featuredImageTarget = null;
+                            screenshotTarget = null;
                             openMediaModal(); 
                         },
                         relative_urls: false, remove_script_host: false,
@@ -218,14 +279,36 @@
                     document.getElementById(`${type}-form`).addEventListener('submit', async (e) => {
                         e.preventDefault();
                         const id = document.getElementById(`${type}-id`).value;
-                        const isBlog = type === 'blog';
-                        const body = {
-                            title: document.getElementById(`${type}-title`).value,
-                            imageUrl: document.getElementById(`${type}-imageUrl`).value,
-                            status: document.getElementById(`${type}-status`).value,
-                            [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(),
-                            [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value
-                        };
+                        let body = {};
+
+                        if (type === 'project') {
+                            const technologies = document.getElementById('project-technologies').value.split(',').map(t => t.trim()).filter(Boolean);
+                            const features = Array.from(document.querySelectorAll('#project-features-list input')).map(input => input.value);
+                            const screenshots = Array.from(document.querySelectorAll('#project-screenshots-list input')).map(input => input.value);
+                            body = {
+                                title: document.getElementById('project-title').value,
+                                url: document.getElementById('project-url').value,
+                                imageUrl: document.getElementById('project-imageUrl').value,
+                                status: document.getElementById('project-status').value,
+                                data: {
+                                    summary: document.getElementById('project-summary').value,
+                                    technologies: technologies,
+                                    features: features,
+                                    screenshots: screenshots,
+                                    description: tinymce.get('editor-project').getContent()
+                                }
+                            };
+                        } else {
+                            const isBlog = type === 'blog';
+                            body = {
+                                title: document.getElementById(`${type}-title`).value,
+                                imageUrl: document.getElementById(`${type}-imageUrl`).value,
+                                status: document.getElementById(`${type}-status`).value,
+                                [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(),
+                                [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value
+                            };
+                        }
+                        
                         const method = id ? 'PUT' : 'POST';
                         const url = id ? `${API_URL}/edit/${type}/${id}` : `${API_URL}/add/${type}`;
                         
@@ -247,13 +330,13 @@
                         const row = closest('tr');
                         if (confirm('Estàs segur?')) {
                             await fetch(`${API_URL}/delete/${btn.dataset.type}/${row.dataset.id}`, { method: 'DELETE' });
-                            const pluralType = getPluralType(btn.dataset.type);
-                            loadSectionData(pluralType, currentPages[pluralType]);
+                            loadSectionData(getPluralType(btn.dataset.type), currentPages[getPluralType(btn.dataset.type)]);
                         }
                     } else if (btn = closest('.pagination button')) {
                         loadSectionData(btn.dataset.type, parseInt(btn.dataset.page));
                     } else if (btn = closest('.image-preview')) {
                         featuredImageTarget = btn.dataset.type;
+                        screenshotTarget = null;
                         tinyMceCallback = null;
                         openMediaModal();
                     } else if (target.classList.contains('status-toggle')) {
@@ -261,32 +344,48 @@
                         const type = target.dataset.type;
                         const newStatus = target.checked ? 'published' : 'draft';
                         await fetch(`${API_URL}/status/${type}/${row.dataset.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: newStatus }) });
-                        const pluralType = getPluralType(type);
-                        loadSectionData(pluralType, currentPages[pluralType]);
+                        loadSectionData(getPluralType(type), currentPages[getPluralType(type)]);
                     }
                 });
 
-                document.getElementById('open-media-btn').addEventListener('click', () => { featuredImageTarget = null; tinyMceCallback = null; openMediaModal(); });
-                document.getElementById('media-modal-close').addEventListener('click', closeMediaModal);
+                document.getElementById('projects-editor-view').addEventListener('click', (e) => {
+                    if (e.target.id === 'add-feature-btn') addFeature();
+                    if (e.target.id === 'add-screenshot-btn') {
+                        screenshotTarget = addScreenshot();
+                        featuredImageTarget = null;
+                        tinyMceCallback = null;
+                        openMediaModal();
+                    }
+                    if (e.target.classList.contains('remove-item-btn')) {
+                        e.target.closest('.dynamic-list-item').remove();
+                    }
+                });
 
+                document.getElementById('open-media-btn').addEventListener('click', () => { featuredImageTarget = null; tinyMceCallback = null; screenshotTarget = null; openMediaModal(); });
+                document.getElementById('media-modal-close').addEventListener('click', closeMediaModal);
+                
                 document.getElementById('upload-form').addEventListener('submit', async e => {
                     e.preventDefault();
                     const formData = new FormData(e.target);
                     const response = await fetch('/api/upload', { method: 'POST', body: formData });
                     const data = await response.json();
                     
-                    if (tinyMceCallback) {
-                        tinyMceCallback(data.url, { alt: 'Imatge' });
-                        closeMediaModal();
-                    } else if (featuredImageTarget) {
+                    if (tinyMceCallback) { tinyMceCallback(data.url, { alt: 'Imatge' }); }
+                    else if (featuredImageTarget) {
                         const type = featuredImageTarget;
                         document.getElementById(`${type}-imageUrl`).value = data.url;
                         const preview = document.getElementById(`${type}-image-preview`);
                         preview.style.backgroundImage = `url('${data.url}')`;
                         preview.querySelector('span').style.display = 'none';
-                        closeMediaModal();
+                    } else if (screenshotTarget) {
+                        screenshotTarget.input.value = data.url;
+                        screenshotTarget.preview.style.backgroundImage = `url('${data.url}')`;
+                    } else { loadMedia(); }
+                    
+                    if (!featuredImageTarget && !tinyMceCallback) {
+                       // Manté la finestra oberta si només s'afegeix una captura
                     } else {
-                        loadMedia();
+                        closeMediaModal();
                     }
                     e.target.reset();
                 });
@@ -296,6 +395,26 @@
                 loadSectionData('blog', 1);
             };
 
+            const addFeature = (value = '') => {
+                const container = document.getElementById('project-features-list');
+                const div = document.createElement('div');
+                div.className = 'dynamic-list-item';
+                div.innerHTML = `<input type="text" placeholder="Descripció de la característica..." value="${value}"><button type="button" class="btn btn-xs btn-danger remove-item-btn">&times;</button>`;
+                container.appendChild(div);
+            };
+
+            const addScreenshot = (value = '') => {
+                const container = document.getElementById('project-screenshots-list');
+                const div = document.createElement('div');
+                div.className = 'dynamic-list-item screenshot-item';
+                div.innerHTML = `<div class="screenshot-preview" style="background-image: url('${value}')"></div><input type="text" placeholder="URL de la captura..." value="${value}" readonly><button type="button" class="btn btn-xs btn-danger remove-item-btn">&times;</button>`;
+                container.appendChild(div);
+                return {
+                    input: div.querySelector('input'),
+                    preview: div.querySelector('.screenshot-preview')
+                };
+            };
+            
             const loadMedia = async () => {
                 const response = await fetch('/api/media');
                 const imageUrls = await response.json();
@@ -305,17 +424,18 @@
                     const img = document.createElement('img');
                     img.src = url;
                     img.addEventListener('click', () => {
-                        if (tinyMceCallback) {
-                            tinyMceCallback(url, { alt: 'Imatge' });
-                            closeMedia-modal();
-                        } else if (featuredImageTarget) {
+                        if (tinyMceCallback) { tinyMceCallback(url, { alt: 'Imatge' }); }
+                        else if (featuredImageTarget) {
                             const type = featuredImageTarget;
                             document.getElementById(`${type}-imageUrl`).value = url;
                             const preview = document.getElementById(`${type}-image-preview`);
                             preview.style.backgroundImage = `url('${url}')`;
                             preview.querySelector('span').style.display = 'none';
-                            closeMediaModal();
+                        } else if (screenshotTarget) {
+                            screenshotTarget.input.value = url;
+                            screenshotTarget.preview.style.backgroundImage = `url('${url}')`;
                         }
+                        closeMediaModal();
                     });
                     mediaGrid.appendChild(img);
                 });
