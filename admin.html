@@ -120,7 +120,8 @@
                     return `<form id="project-form" class="editor-form" novalidate><h3 id="project-form-title"></h3><input type="hidden" id="project-id"><div class="form-grid"><div class="form-fields"><label>Títol del Projecte</label><input type="text" id="project-title" required><label>URL del Projecte</label><input type="url" id="project-url"><label>Resum / Eslògan (frase curta)</label><textarea id="project-summary" rows="2"></textarea><label>Tecnologies (separades per comes, ex: React, Node.js)</label><input type="text" id="project-technologies"><label>Estat</label><select id="project-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select></div><div class="featured-image-control"><label>Imatge Destacada</label><input type="hidden" id="project-imageUrl"><div id="project-image-preview" class="image-preview" data-type="project"><span>Feu clic per seleccionar</span></div></div></div><div><label>Característiques Clau</label><div id="project-features-list" class="dynamic-list-container"></div><button type="button" class="btn btn-sm btn-secondary" id="add-feature-btn">Afegir Característica</button></div><div><label>Galeria de Captures</label><div id="project-screenshots-list" class="dynamic-list-container"></div><button type="button" class="btn btn-sm btn-secondary" id="add-screenshot-btn">Afegir Captura</button></div><div><label>Descripció Completa</label><textarea id="editor-project"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="project">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar Projecte</button></div></form>`;
                 }
                 const isBlog = type === 'blog';
-                return `<form id="${type}-form" class="editor-form" novalidate><h3 id="${type}-form-title"></h3><input type="hidden" id="${type}-id"><div class="form-grid"><div class="form-fields"><label>Títol</label><input type="text" id="${type}-title" required>${isBlog ? `<label>Data</label><input type="date" id="${type}-date" required>` : `<label>URL del Projecte/App</label><input type="url" id="${type}-url">`}<label>Estat</label><select id="${type}-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select></div><div class="featured-image-control"><label>Imatge Destacada</label><input type="hidden" id="${type}-imageUrl"><div id="${type}-image-preview" class="image-preview" data-type="${type}"><span>Feu clic per seleccionar</span></div></div></div><div><label>${isBlog ? 'Contingut' : 'Descripció'}</label><textarea id="editor-${type}"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="type">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form>`;
+                // NOU: Afegit el camp de 'summary'
+                return `<form id="${type}-form" class="editor-form" novalidate><h3 id="${type}-form-title"></h3><input type="hidden" id="${type}-id"><div class="form-grid"><div class="form-fields"><label>Títol</label><input type="text" id="${type}-title" required>${isBlog ? `<label>Data</label><input type="date" id="${type}-date" required>` : `<label>URL del Projecte/App</label><input type="url" id="${type}-url">`}<label>Estat</label><select id="${type}-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select></div><div class="featured-image-control"><label>Imatge Destacada</label><input type="hidden" id="${type}-imageUrl"><div id="${type}-image-preview" class="image-preview" data-type="${type}"><span>Feu clic per seleccionar</span></div></div></div><div><label>Text Introductori (per a la vista de targetes)</label><textarea id="${type}-summary" rows="3"></textarea></div><div><label>${isBlog ? 'Contingut Complet' : 'Descripció Completa'}</label><textarea id="editor-${type}"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="${type}">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form>`;
             };
             
             const openMediaModal = () => { document.getElementById('media-modal-overlay').style.display = 'block'; loadMedia(); };
@@ -166,6 +167,7 @@
             };
 
             const showEditor = async (type, itemId = null) => {
+                const pluralType = getPluralType(type);
                 const form = document.getElementById(`${type}-form`);
                 form.reset();
                 tinymce.get(`editor-${type}`).setContent('');
@@ -178,7 +180,11 @@
                 if (type === 'project') {
                     document.getElementById('project-features-list').innerHTML = '';
                     document.getElementById('project-screenshots-list').innerHTML = '';
+                } else {
+                    // NOU: Resetejem el camp summary
+                    document.getElementById(`${type}-summary`).value = '';
                 }
+                
                 if (itemId) {
                     const response = await fetch(`${API_URL}/item/${type}/${itemId}`);
                     const item = await response.json();
@@ -202,9 +208,11 @@
                         (data.screenshots || []).forEach(addScreenshot);
                     } else if (type === 'blog') {
                         document.getElementById(`${type}-date`).value = item.date;
+                        document.getElementById(`${type}-summary`).value = item.summary || ''; // NOU
                         tinymce.get(`editor-blog`).setContent(item.content || '');
-                    } else {
+                    } else { // És 'app'
                         document.getElementById(`${type}-url`).value = item.url || '';
+                        document.getElementById(`${type}-summary`).value = item.summary || ''; // NOU
                         tinymce.get(`editor-${type}`).setContent(item.description || '');
                     }
                 } else {
@@ -246,8 +254,17 @@
                             const screenshots = Array.from(document.querySelectorAll('#project-screenshots-list input')).map(input => input.value);
                             body = { title: document.getElementById('project-title').value, url: document.getElementById('project-url').value, imageUrl: document.getElementById('project-imageUrl').value, status: document.getElementById('project-status').value, data: { summary: document.getElementById('project-summary').value, technologies: technologies, features: features, screenshots: screenshots, description: tinymce.get('editor-project').getContent() } };
                         } else {
+                            // NOU: Obtenim el valor de 'summary' i l'enviem
                             const isBlog = type === 'blog';
-                            body = { title: document.getElementById(`${type}-title`).value, imageUrl: document.getElementById(`${type}-imageUrl`).value, status: document.getElementById(`${type}-status`).value, [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(), [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value };
+                            const summary = document.getElementById(`${type}-summary`).value;
+                            body = { 
+                                title: document.getElementById(`${type}-title`).value, 
+                                imageUrl: document.getElementById(`${type}-imageUrl`).value, 
+                                status: document.getElementById(`${type}-status`).value, 
+                                summary: summary, // Afegit
+                                [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(), 
+                                [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value 
+                            };
                         }
                         const method = id ? 'PUT' : 'POST';
                         const url = id ? `${API_URL}/edit/${type}/${id}` : `${API_URL}/add/${type}`;
@@ -262,7 +279,7 @@
                     const closest = (selector) => target.closest(selector);
                     let btn;
                     if (btn = closest('.new-btn')) { showEditor(btn.dataset.type); }
-                    else if (btn = closest('.cancel-btn')) { switchView(btn.dataset.type, 'list'); }
+                    else if (btn = closest('.cancel-btn')) { const type = btn.closest('form').id.split('-')[0]; switchView(type, 'list'); }
                     else if (btn = closest('.edit-btn')) { showEditor(btn.dataset.type, closest('tr').dataset.id); }
                     else if (btn = closest('.delete-btn')) {
                         const row = closest('tr');
@@ -331,7 +348,7 @@
                         screenshotTarget.preview.style.backgroundImage = `url('${data.url}')`;
                     }
                     loadMedia();
-                    if (featuredImageTarget || tinyMceCallback) { closeMediaModal(); }
+                    if (featuredImageTarget || tinyMceCallback || screenshotTarget) { closeMediaModal(); }
                 };
 
                 document.getElementById('upload-form').addEventListener('submit', async e => {
@@ -343,7 +360,6 @@
                     e.target.reset();
                 });
 
-                // --- NOU: Lògica de Drag and Drop ---
                 const mediaModalOverlay = document.getElementById('media-modal-overlay');
                 const mediaModalContent = mediaModalOverlay.querySelector('.media-modal-content');
 
@@ -352,14 +368,16 @@
                     e.stopPropagation();
                     mediaModalContent.classList.add('drag-over');
                 });
+
                 mediaModalOverlay.addEventListener('dragleave', (e) => {
                     e.preventDefault();
                     e.stopPropagation();
-                    // Només treu l'estil si el ratolí surt de la finestra del navegador completament
-                    if (e.relatedTarget === null) {
+                    // Comprovem si el ratolí ha sortit de la finestra del navegador
+                    if (!e.relatedTarget || e.relatedTarget.nodeName === "HTML") {
                          mediaModalContent.classList.remove('drag-over');
                     }
                 });
+                
                 mediaModalOverlay.addEventListener('drop', async (e) => {
                     e.preventDefault();
                     e.stopPropagation();
@@ -368,7 +386,6 @@
                         await handleFileUpload(e.dataTransfer.files[0]);
                     }
                 });
-
 
                 loadSectionData('projects', 1);
                 loadSectionData('apps', 1);

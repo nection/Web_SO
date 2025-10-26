@@ -100,10 +100,45 @@ async function startServer() {
     const db = new sqlite3.Database(DB_PATH, async (err) => {
         if (err) return console.error("Error fatal a l'obrir la base de dades", err.message);
         console.log("Connectat a la base de dades SQLite principal.");
+        
+        // Assegurar estructura base
         await new Promise(res => db.run(`CREATE TABLE IF NOT EXISTS apps (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT NOT NULL, url TEXT, imageUrl TEXT, status TEXT NOT NULL DEFAULT 'published')`, () => res()));
         await new Promise(res => db.run(`CREATE TABLE IF NOT EXISTS blog (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, content TEXT NOT NULL, date TEXT, imageUrl TEXT, status TEXT NOT NULL DEFAULT 'published')`, () => res()));
         await new Promise(res => db.run(`CREATE TABLE IF NOT EXISTS projects (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, url TEXT, imageUrl TEXT, status TEXT NOT NULL DEFAULT 'published')`, () => res()));
+        
+        // Executar migració de Projects si cal
         await migrateProjectSchema(db);
+
+        // NOU: Funció de migració per afegir el camp 'summary'
+        const addSummaryColumn = (tableName) => {
+            return new Promise((resolve) => {
+                db.all(`PRAGMA table_info(${tableName});`, (err, columns) => {
+                    if (err) {
+                        console.error(`[MIGRACIÓ SUMMARY] Error en comprovar la taula ${tableName}:`, err);
+                        return resolve();
+                    }
+                    const hasSummary = columns.some(col => col.name === 'summary');
+                    if (hasSummary) {
+                        console.log(`[MIGRACIÓ SUMMARY] El camp 'summary' ja existeix a la taula '${tableName}'. No cal fer res.`);
+                        return resolve();
+                    }
+                    console.log(`[MIGRACIÓ SUMMARY] El camp 'summary' no existeix a '${tableName}'. Afegint columna...`);
+                    db.run(`ALTER TABLE ${tableName} ADD COLUMN summary TEXT`, (alterErr) => {
+                        if (alterErr) {
+                            console.error(`[MIGRACIÓ SUMMARY] No s'ha pogut afegir la columna a ${tableName}:`, alterErr);
+                        } else {
+                            console.log(`✅ [MIGRACIÓ SUMMARY] Columna 'summary' afegida a '${tableName}' amb èxit.`);
+                        }
+                        resolve();
+                    });
+                });
+            });
+        };
+
+        // Aplicar la nova migració a 'apps' i 'blog'
+        await addSummaryColumn('apps');
+        await addSummaryColumn('blog');
+
         console.log("Estructura de la base de dades assegurada.");
     });
 
@@ -120,22 +155,16 @@ async function startServer() {
         });
     });
     
-    // NOU: Endpoint per eliminar imatges
     app.delete('/api/media', (req, res) => {
         const { filename } = req.body;
         if (!filename) {
             return res.status(400).json({ error: 'Nom d\'arxiu no proporcionat.' });
         }
-
-        // Mesura de seguretat per evitar atacs de Path Traversal
         const safeFilename = path.basename(filename);
         const filePath = path.join(UPLOADS_DIR, safeFilename);
-
-        // Comprovem que l'arxiu a eliminar estigui realment dins de la carpeta UPLOADS
         if (filePath.indexOf(UPLOADS_DIR) !== 0) {
             return res.status(403).json({ error: 'Accés denegat.' });
         }
-
         fs.unlink(filePath, (err) => {
             if (err) {
                 if (err.code === 'ENOENT') {
@@ -157,7 +186,6 @@ async function startServer() {
         });
     });
 
-    // ... La resta de l'API (cerca, etc.) es queda exactament igual i funciona correctament.
     const searchCache = new Map();
     app.get('/api/public/data/:type', async (req, res) => {
         const { type } = req.params;
@@ -182,7 +210,11 @@ async function startServer() {
                     sortedIds = searchCache.get(cacheKey);
                 } else {
                     const allItems = await runQuery(`SELECT * FROM ${tableName} WHERE status = 'published'`);
-                    const searchKeys = tableName === 'projects' ? ['title', 'data.summary', 'data.technologies', 'data.features', 'data.description'] : (tableName === 'apps' ? ['title', 'description'] : ['title', 'content']);
+                    const searchKeys = tableName === 'projects' 
+                        ? ['title', 'data.summary', 'data.technologies', 'data.features', 'data.description'] 
+                        : (tableName === 'apps' 
+                            ? ['title', 'summary', 'description'] 
+                            : ['title', 'summary', 'content']);
                     const itemsToSearch = tableName === 'projects' ? allItems.map(item => ({...item, data: JSON.parse(item.data || '{}')})) : allItems;
                     const fuse = new Fuse(itemsToSearch, { keys: searchKeys, includeScore: true, threshold: 0.4, ignoreLocation: true, findAllMatches: true });
                     const searchResults = fuse.search(query);
@@ -213,7 +245,8 @@ async function startServer() {
                     const projectData = (typeof item.data === 'string') ? JSON.parse(item.data || '{}') : item.data;
                     return { id: item.id, title: item.title, description: projectData.summary || '', imageUrl: item.imageUrl };
                 }
-                return { id: item.id, title: item.title, description: item.description || item.content, imageUrl: item.imageUrl };
+                // NOU: Prioritzem 'summary' per a la descripció de la targeta
+                return { id: item.id, title: item.title, description: item.summary || item.description || item.content, imageUrl: item.imageUrl };
             });
             res.json({ items: finalItems, totalPages: Math.ceil(totalItems / limit), currentPage: page });
         } catch (err) {
@@ -261,9 +294,14 @@ async function startServer() {
                 res.status(201).json({ id: this.lastID });
             });
         } else {
-            const { title, content, date, imageUrl, status, description, url } = req.body;
-            const query = type === 'blog' ? `INSERT INTO blog (title, content, date, imageUrl, status) VALUES (?, ?, ?, ?, ?)` : `INSERT INTO ${table} (title, description, url, imageUrl, status) VALUES (?, ?, ?, ?, ?)`;
-            const params = type === 'blog' ? [title, content, date, imageUrl, status] : [title, description, url, imageUrl, status];
+            // NOU: Afegim 'summary' a la creació
+            const { title, content, date, imageUrl, status, description, url, summary } = req.body;
+            const query = type === 'blog' 
+                ? `INSERT INTO blog (title, content, date, imageUrl, status, summary) VALUES (?, ?, ?, ?, ?, ?)` 
+                : `INSERT INTO ${table} (title, description, url, imageUrl, status, summary) VALUES (?, ?, ?, ?, ?, ?)`;
+            const params = type === 'blog' 
+                ? [title, content, date, imageUrl, status, summary] 
+                : [title, description, url, imageUrl, status, summary];
             db.run(query, params, function (err) {
                 if (err) return res.status(500).json({ "error": err.message });
                 res.status(201).json({ id: this.lastID });
@@ -282,9 +320,14 @@ async function startServer() {
                 res.json({ changes: this.changes });
             });
         } else {
-            const { title, content, date, imageUrl, status, description, url } = req.body;
-            const query = type === 'blog' ? `UPDATE blog SET title = ?, content = ?, date = ?, imageUrl = ?, status = ? WHERE id = ?` : `UPDATE ${table} SET title = ?, description = ?, url = ?, imageUrl = ?, status = ? WHERE id = ?`;
-            const params = type === 'blog' ? [title, content, date, imageUrl, status, id] : [title, description, url, imageUrl, status, id];
+            // NOU: Afegim 'summary' a l'actualització
+            const { title, content, date, imageUrl, status, description, url, summary } = req.body;
+            const query = type === 'blog' 
+                ? `UPDATE blog SET title = ?, content = ?, date = ?, imageUrl = ?, status = ?, summary = ? WHERE id = ?` 
+                : `UPDATE ${table} SET title = ?, description = ?, url = ?, imageUrl = ?, status = ?, summary = ? WHERE id = ?`;
+            const params = type === 'blog' 
+                ? [title, content, date, imageUrl, status, summary, id] 
+                : [title, description, url, imageUrl, status, summary, id];
             db.run(query, params, function (err) {
                 if (err) return res.status(500).json({ "error": err.message });
                 res.json({ changes: this.changes });

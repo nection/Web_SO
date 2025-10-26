@@ -131,14 +131,32 @@
             return firstDashIndex > -1 ? filename.substring(firstDashIndex + 1) : filename;
         };
         const adjustTextToFit = (card) => {
-            const shrink = (element, minSize) => {
+            const titleElement = card.querySelector('h4');
+            const bodyElement = card.querySelector('.card-body');
+            
+            // Augmentem l'alçada mínima per donar més espai per defecte
+            bodyElement.style.minHeight = '95px';
+
+            const shrink = (element, minSize, isTitle = false) => {
                 let fontSize = parseFloat(window.getComputedStyle(element).fontSize);
-                while ((element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) && fontSize > minSize) {
+                // Per al títol, assegurem que no hi hagi overflow en cap línia
+                const checkOverflow = () => isTitle 
+                    ? (element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth)
+                    : (element.scrollHeight > element.clientHeight);
+
+                while (checkOverflow() && fontSize > minSize) {
                     fontSize -= 0.5;
                     element.style.fontSize = `${fontSize}px`;
+                    // Per al títol, també podem ajustar l'alçada de línia
+                    if (isTitle) {
+                        element.style.lineHeight = `${fontSize + 2}px`;
+                    }
                 }
             };
-            shrink(card.querySelector('h4'), 14);
+            
+            // Apliquem la lògica primer al títol, amb més flexibilitat
+            shrink(titleElement, 14, true); 
+            // Després, al paràgraf de descripció
             shrink(card.querySelector('p'), 9);
         };
 
