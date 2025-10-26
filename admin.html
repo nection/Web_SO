@@ -52,7 +52,6 @@
         .image-preview span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #6c757d; font-size: 0.9em; text-align: center; padding: 5px; }
         .image-preview:hover { border-color: var(--primary-color); }
         .pagination { display: flex; justify-content: space-between; align-items: center; margin-top: 20px; }
-        /* Estils per a la llista dinàmica */
         .dynamic-list-container { display: flex; flex-direction: column; gap: 10px; }
         .dynamic-list-item { display: flex; align-items: center; gap: 10px; }
         .dynamic-list-item input { flex-grow: 1; }
@@ -60,13 +59,38 @@
         .screenshot-preview { width: 80px; height: 50px; background-size: cover; background-position: center; border: 1px solid #ccc; border-radius: 4px; }
         
         .media-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; z-index: 99999; }
-        .media-modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; height: 80vh; background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; z-index: 999999; }
+        .media-modal-content { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 80%; max-width: 900px; height: 80vh; background: white; padding: 20px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: flex; flex-direction: column; z-index: 999999; transition: border 0.2s ease; }
         .media-modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; padding-bottom: 10px; }
         .media-modal-close { font-size: 2em; font-weight: bold; cursor: pointer; }
         .media-grid { flex-grow: 1; overflow-y: auto; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; padding: 10px 0; }
-        .media-grid img { width: 100%; height: 100px; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
-        .media-grid img:hover { border-color: var(--primary-color); }
+        .media-item { position: relative; }
+        .media-item img { width: 100%; height: 100px; object-fit: cover; cursor: pointer; border: 2px solid transparent; transition: border-color 0.2s; }
+        .media-item:hover img { border-color: var(--primary-color); }
+        .media-delete-btn { position: absolute; top: 5px; right: 5px; width: 20px; height: 20px; background: rgba(220, 53, 69, 0.8); color: white; border: none; border-radius: 50%; cursor: pointer; font-weight: bold; display: none; align-items: center; justify-content: center; line-height: 1; }
+        .media-item:hover .media-delete-btn { display: flex; }
+        .media-delete-btn:hover { background: #dc3545; }
         .upload-area { padding: 15px; border-top: 1px solid #ccc; }
+
+        /* NOU: Estils per al Drag and Drop */
+        .media-modal-content.drag-over { border: 4px dashed var(--primary-color); }
+        .drag-overlay-text {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            color: var(--primary-color);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            pointer-events: none; /* Permet que els esdeveniments passin a través */
+            z-index: 10;
+        }
+        .media-modal-content.drag-over .drag-overlay-text { display: flex; }
+
     </style>
 </head>
 <body>
@@ -79,7 +103,7 @@
         <div id="blog-section" class="section"><div id="blog-list-view"><h2>Bloc <button class="btn btn-success new-btn" data-type="blog">Nova Entrada</button></h2><div class="table-wrapper"><table class="data-table"><thead><tr><th>Títol</th><th>Estat</th><th class="actions-cell">Accions</th></tr></thead><tbody id="blog-list"></tbody></table></div><div id="blog-pagination" class="pagination"></div></div><div id="blog-editor-view" class="editor-view"></div></div>
     </div>
 
-    <div id="media-modal-overlay" class="media-modal-overlay"><div class="media-modal-content"><div class="media-modal-header"><h2>Mediateca</h2><span id="media-modal-close" class="media-modal-close">&times;</span></div><div id="media-grid" class="media-grid"></div><div class="upload-area"><form id="upload-form"><h4>Pujar nova imatge</h4><input type="file" name="image" id="image-input" accept="image/*" required><button type="submit" class="btn btn-primary">Pujar</button></form></div></div></div>
+    <div id="media-modal-overlay" class="media-modal-overlay"><div class="media-modal-content"><div class="media-modal-header"><h2>Mediateca</h2><span id="media-modal-close" class="media-modal-close">&times;</span></div><div id="media-grid" class="media-grid"></div><div class="upload-area"><form id="upload-form"><h4>Pujar nova imatge</h4><input type="file" name="image" id="image-input" accept="image/*" required><button type="submit" class="btn btn-primary">Pujar</button></form></div><div class="drag-overlay-text">Deixa anar per pujar la imatge</div></div></div>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -93,62 +117,10 @@
 
             const createFormHTML = (type) => {
                 if (type === 'project') {
-                    return `
-                    <form id="project-form" class="editor-form" novalidate>
-                        <h3 id="project-form-title"></h3><input type="hidden" id="project-id">
-                        <div class="form-grid">
-                            <div class="form-fields">
-                                <label>Títol del Projecte</label><input type="text" id="project-title" required>
-                                <label>URL del Projecte</label><input type="url" id="project-url">
-                                <label>Resum / Eslògan (frase curta)</label><textarea id="project-summary" rows="2"></textarea>
-                                <label>Tecnologies (separades per comes, ex: React, Node.js)</label><input type="text" id="project-technologies">
-                                <label>Estat</label><select id="project-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select>
-                            </div>
-                            <div class="featured-image-control">
-                                <label>Imatge Destacada</label><input type="hidden" id="project-imageUrl">
-                                <div id="project-image-preview" class="image-preview" data-type="project"><span>Feu clic per seleccionar</span></div>
-                            </div>
-                        </div>
-                        <div>
-                            <label>Característiques Clau</label>
-                            <div id="project-features-list" class="dynamic-list-container"></div>
-                            <button type="button" class="btn btn-sm btn-secondary" id="add-feature-btn">Afegir Característica</button>
-                        </div>
-                        <div>
-                            <label>Galeria de Captures</label>
-                            <div id="project-screenshots-list" class="dynamic-list-container"></div>
-                            <button type="button" class="btn btn-sm btn-secondary" id="add-screenshot-btn">Afegir Captura</button>
-                        </div>
-                        <div>
-                            <label>Descripció Completa</label>
-                            <textarea id="editor-project"></textarea>
-                        </div>
-                        <div class="form-actions">
-                            <button type="button" class="btn btn-secondary cancel-btn" data-type="project">Cancel·lar</button>
-                            <button type="submit" class="btn btn-primary">Guardar Projecte</button>
-                        </div>
-                    </form>`;
+                    return `<form id="project-form" class="editor-form" novalidate><h3 id="project-form-title"></h3><input type="hidden" id="project-id"><div class="form-grid"><div class="form-fields"><label>Títol del Projecte</label><input type="text" id="project-title" required><label>URL del Projecte</label><input type="url" id="project-url"><label>Resum / Eslògan (frase curta)</label><textarea id="project-summary" rows="2"></textarea><label>Tecnologies (separades per comes, ex: React, Node.js)</label><input type="text" id="project-technologies"><label>Estat</label><select id="project-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select></div><div class="featured-image-control"><label>Imatge Destacada</label><input type="hidden" id="project-imageUrl"><div id="project-image-preview" class="image-preview" data-type="project"><span>Feu clic per seleccionar</span></div></div></div><div><label>Característiques Clau</label><div id="project-features-list" class="dynamic-list-container"></div><button type="button" class="btn btn-sm btn-secondary" id="add-feature-btn">Afegir Característica</button></div><div><label>Galeria de Captures</label><div id="project-screenshots-list" class="dynamic-list-container"></div><button type="button" class="btn btn-sm btn-secondary" id="add-screenshot-btn">Afegir Captura</button></div><div><label>Descripció Completa</label><textarea id="editor-project"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="project">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar Projecte</button></div></form>`;
                 }
-
-                // Formulari per a Blog i Apps (el d'abans)
                 const isBlog = type === 'blog';
-                return `
-                    <form id="${type}-form" class="editor-form" novalidate>
-                        <h3 id="${type}-form-title"></h3><input type="hidden" id="${type}-id">
-                        <div class="form-grid">
-                            <div class="form-fields">
-                                <label>Títol</label><input type="text" id="${type}-title" required>
-                                ${isBlog ? `<label>Data</label><input type="date" id="${type}-date" required>` : `<label>URL del Projecte/App</label><input type="url" id="${type}-url">`}
-                                <label>Estat</label><select id="${type}-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select>
-                            </div>
-                            <div class="featured-image-control">
-                                <label>Imatge Destacada</label><input type="hidden" id="${type}-imageUrl">
-                                <div id="${type}-image-preview" class="image-preview" data-type="${type}"><span>Feu clic per seleccionar</span></div>
-                            </div>
-                        </div>
-                        <div><label>${isBlog ? 'Contingut' : 'Descripció'}</label><textarea id="editor-${type}"></textarea></div>
-                        <div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="${type}">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar</button></div>
-                    </form>`;
+                return `<form id="${type}-form" class="editor-form" novalidate><h3 id="${type}-form-title"></h3><input type="hidden" id="${type}-id"><div class="form-grid"><div class="form-fields"><label>Títol</label><input type="text" id="${type}-title" required>${isBlog ? `<label>Data</label><input type="date" id="${type}-date" required>` : `<label>URL del Projecte/App</label><input type="url" id="${type}-url">`}<label>Estat</label><select id="${type}-status"><option value="published">Publicat</option><option value="draft">Esborrany</option></select></div><div class="featured-image-control"><label>Imatge Destacada</label><input type="hidden" id="${type}-imageUrl"><div id="${type}-image-preview" class="image-preview" data-type="${type}"><span>Feu clic per seleccionar</span></div></div></div><div><label>${isBlog ? 'Contingut' : 'Descripció'}</label><textarea id="editor-${type}"></textarea></div><div class="form-actions"><button type="button" class="btn btn-secondary cancel-btn" data-type="type">Cancel·lar</button><button type="submit" class="btn btn-primary">Guardar</button></div></form>`;
             };
             
             const openMediaModal = () => { document.getElementById('media-modal-overlay').style.display = 'block'; loadMedia(); };
@@ -176,16 +148,7 @@
                     let typeSingular = (type === 'blog') ? 'blog' : type.slice(0, -1);
                     const statusLabel = item.status === 'published' ? 'Publicat' : 'Esborrany';
                     const statusClass = item.status === 'published' ? 'status-published' : 'status-draft';
-                    list.innerHTML += `
-                        <tr data-id="${item.id}">
-                            <td>${item.title || '(Sense títol)'}</td>
-                            <td><span class="status-label ${statusClass}">${statusLabel}</span></td>
-                            <td class="actions-cell">
-                                <label class="status-switch"><input type="checkbox" class="status-toggle" data-type="${typeSingular}" ${item.status === 'published' ? 'checked' : ''}><span class="slider"></span></label>
-                                <button class="btn btn-sm btn-warning edit-btn" data-type="${typeSingular}">Editar</button>
-                                <button class="btn btn-sm btn-danger delete-btn" data-type="${typeSingular}">Esborrar</button>
-                            </td>
-                        </tr>`;
+                    list.innerHTML += `<tr data-id="${item.id}"><td>${item.title || '(Sense títol)'}</td><td><span class="status-label ${statusClass}">${statusLabel}</span></td><td class="actions-cell"><label class="status-switch"><input type="checkbox" class="status-toggle" data-type="${typeSingular}" ${item.status === 'published' ? 'checked' : ''}><span class="slider"></span></label><button class="btn btn-sm btn-warning edit-btn" data-type="${typeSingular}">Editar</button><button class="btn btn-sm btn-danger delete-btn" data-type="${typeSingular}">Esborrar</button></td></tr>`;
                 });
             };
             
@@ -212,12 +175,10 @@
                     preview.querySelector('span').style.display = 'block';
                     document.getElementById(`${type}-imageUrl`).value = '';
                 }
-
                 if (type === 'project') {
                     document.getElementById('project-features-list').innerHTML = '';
                     document.getElementById('project-screenshots-list').innerHTML = '';
                 }
-
                 if (itemId) {
                     const response = await fetch(`${API_URL}/item/${type}/${itemId}`);
                     const item = await response.json();
@@ -231,7 +192,6 @@
                         mainPreview.style.backgroundImage = `url('${item.imageUrl}')`;
                         mainPreview.querySelector('span').style.display = 'none';
                     }
-                    
                     if (type === 'project') {
                         document.getElementById('project-url').value = item.url || '';
                         const data = item.data || {};
@@ -243,7 +203,7 @@
                     } else if (type === 'blog') {
                         document.getElementById(`${type}-date`).value = item.date;
                         tinymce.get(`editor-blog`).setContent(item.content || '');
-                    } else { // app
+                    } else {
                         document.getElementById(`${type}-url`).value = item.url || '';
                         tinymce.get(`editor-${type}`).setContent(item.description || '');
                     }
@@ -280,38 +240,17 @@
                         e.preventDefault();
                         const id = document.getElementById(`${type}-id`).value;
                         let body = {};
-
                         if (type === 'project') {
                             const technologies = document.getElementById('project-technologies').value.split(',').map(t => t.trim()).filter(Boolean);
                             const features = Array.from(document.querySelectorAll('#project-features-list input')).map(input => input.value);
                             const screenshots = Array.from(document.querySelectorAll('#project-screenshots-list input')).map(input => input.value);
-                            body = {
-                                title: document.getElementById('project-title').value,
-                                url: document.getElementById('project-url').value,
-                                imageUrl: document.getElementById('project-imageUrl').value,
-                                status: document.getElementById('project-status').value,
-                                data: {
-                                    summary: document.getElementById('project-summary').value,
-                                    technologies: technologies,
-                                    features: features,
-                                    screenshots: screenshots,
-                                    description: tinymce.get('editor-project').getContent()
-                                }
-                            };
+                            body = { title: document.getElementById('project-title').value, url: document.getElementById('project-url').value, imageUrl: document.getElementById('project-imageUrl').value, status: document.getElementById('project-status').value, data: { summary: document.getElementById('project-summary').value, technologies: technologies, features: features, screenshots: screenshots, description: tinymce.get('editor-project').getContent() } };
                         } else {
                             const isBlog = type === 'blog';
-                            body = {
-                                title: document.getElementById(`${type}-title`).value,
-                                imageUrl: document.getElementById(`${type}-imageUrl`).value,
-                                status: document.getElementById(`${type}-status`).value,
-                                [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(),
-                                [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value
-                            };
+                            body = { title: document.getElementById(`${type}-title`).value, imageUrl: document.getElementById(`${type}-imageUrl`).value, status: document.getElementById(`${type}-status`).value, [isBlog ? 'content' : 'description']: tinymce.get(`editor-${type}`).getContent(), [isBlog ? 'date' : 'url']: document.getElementById(`${type}-${isBlog ? 'date' : 'url'}`).value };
                         }
-                        
                         const method = id ? 'PUT' : 'POST';
                         const url = id ? `${API_URL}/edit/${type}/${id}` : `${API_URL}/add/${type}`;
-                        
                         await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
                         switchView(type, 'list');
                         loadSectionData(pluralType, id ? currentPages[pluralType] : 1);
@@ -322,7 +261,6 @@
                     const target = e.target;
                     const closest = (selector) => target.closest(selector);
                     let btn;
-
                     if (btn = closest('.new-btn')) { showEditor(btn.dataset.type); }
                     else if (btn = closest('.cancel-btn')) { switchView(btn.dataset.type, 'list'); }
                     else if (btn = closest('.edit-btn')) { showEditor(btn.dataset.type, closest('tr').dataset.id); }
@@ -364,12 +302,23 @@
                 document.getElementById('open-media-btn').addEventListener('click', () => { featuredImageTarget = null; tinyMceCallback = null; screenshotTarget = null; openMediaModal(); });
                 document.getElementById('media-modal-close').addEventListener('click', closeMediaModal);
                 
-                document.getElementById('upload-form').addEventListener('submit', async e => {
-                    e.preventDefault();
-                    const formData = new FormData(e.target);
+                document.getElementById('media-grid').addEventListener('click', async (e) => {
+                    if (e.target.classList.contains('media-delete-btn')) {
+                        e.stopPropagation();
+                        const filename = e.target.dataset.filename;
+                        if (confirm(`Estàs segur que vols eliminar la imatge ${getCleanFilename(filename)}? Aquesta acció no es pot desfer.`)) {
+                            await fetch('/api/media', { method: 'DELETE', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ filename: filename }) });
+                            loadMedia();
+                        }
+                    }
+                });
+                
+                const handleFileUpload = async (file) => {
+                    if (!file || !file.type.startsWith('image/')) return;
+                    const formData = new FormData();
+                    formData.append('image', file);
                     const response = await fetch('/api/upload', { method: 'POST', body: formData });
                     const data = await response.json();
-                    
                     if (tinyMceCallback) { tinyMceCallback(data.url, { alt: 'Imatge' }); }
                     else if (featuredImageTarget) {
                         const type = featuredImageTarget;
@@ -380,15 +329,46 @@
                     } else if (screenshotTarget) {
                         screenshotTarget.input.value = data.url;
                         screenshotTarget.preview.style.backgroundImage = `url('${data.url}')`;
-                    } else { loadMedia(); }
-                    
-                    if (!featuredImageTarget && !tinyMceCallback) {
-                       // Manté la finestra oberta si només s'afegeix una captura
-                    } else {
-                        closeMediaModal();
+                    }
+                    loadMedia();
+                    if (featuredImageTarget || tinyMceCallback) { closeMediaModal(); }
+                };
+
+                document.getElementById('upload-form').addEventListener('submit', async e => {
+                    e.preventDefault();
+                    const fileInput = document.getElementById('image-input');
+                    if (fileInput.files.length > 0) {
+                        await handleFileUpload(fileInput.files[0]);
                     }
                     e.target.reset();
                 });
+
+                // --- NOU: Lògica de Drag and Drop ---
+                const mediaModalOverlay = document.getElementById('media-modal-overlay');
+                const mediaModalContent = mediaModalOverlay.querySelector('.media-modal-content');
+
+                mediaModalOverlay.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    mediaModalContent.classList.add('drag-over');
+                });
+                mediaModalOverlay.addEventListener('dragleave', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    // Només treu l'estil si el ratolí surt de la finestra del navegador completament
+                    if (e.relatedTarget === null) {
+                         mediaModalContent.classList.remove('drag-over');
+                    }
+                });
+                mediaModalOverlay.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    mediaModalContent.classList.remove('drag-over');
+                    if (e.dataTransfer.files.length > 0) {
+                        await handleFileUpload(e.dataTransfer.files[0]);
+                    }
+                });
+
 
                 loadSectionData('projects', 1);
                 loadSectionData('apps', 1);
@@ -409,18 +389,25 @@
                 div.className = 'dynamic-list-item screenshot-item';
                 div.innerHTML = `<div class="screenshot-preview" style="background-image: url('${value}')"></div><input type="text" placeholder="URL de la captura..." value="${value}" readonly><button type="button" class="btn btn-xs btn-danger remove-item-btn">&times;</button>`;
                 container.appendChild(div);
-                return {
-                    input: div.querySelector('input'),
-                    preview: div.querySelector('.screenshot-preview')
-                };
+                return { input: div.querySelector('input'), preview: div.querySelector('.screenshot-preview') };
             };
             
+            const getCleanFilename = (url) => {
+                if (!url) return '';
+                const filename = url.split('/').pop();
+                const firstDashIndex = filename.indexOf('-');
+                return firstDashIndex > 10 ? filename.substring(firstDashIndex + 1) : filename; // Evita treure guions de noms normals
+            };
+
             const loadMedia = async () => {
                 const response = await fetch('/api/media');
                 const imageUrls = await response.json();
                 const mediaGrid = document.getElementById('media-grid');
                 mediaGrid.innerHTML = '';
                 imageUrls.forEach(url => {
+                    const filename = url.split('/').pop();
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'media-item';
                     const img = document.createElement('img');
                     img.src = url;
                     img.addEventListener('click', () => {
@@ -437,10 +424,15 @@
                         }
                         closeMediaModal();
                     });
-                    mediaGrid.appendChild(img);
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = 'media-delete-btn';
+                    deleteBtn.innerHTML = '&times;';
+                    deleteBtn.dataset.filename = filename;
+                    itemDiv.appendChild(img);
+                    itemDiv.appendChild(deleteBtn);
+                    mediaGrid.appendChild(itemDiv);
                 });
             };
-
             init();
         });
     </script>

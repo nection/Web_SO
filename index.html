@@ -115,10 +115,8 @@
         let windowCascadeCount = 0;
         const folderPositions = {};
         let nextFolderPositionIndex = 0;
-        
         const windowStartX = 150;
         const presetFolderPositions = [ { top: 40, left: windowStartX }, { top: 70, left: windowStartX + 160 }, { top: 100, left: windowStartX + 70 }];
-        
         const windowStates = {};
         const imageModalOverlay = document.getElementById('image-modal-overlay');
         
@@ -127,7 +125,11 @@
         const stripHtml = (html) => { let tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ""; }
         const getPluralType = (type) => type === 'blog' ? type : type + 's';
         const debounce = (func, delay) => { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
-
+        const getCleanFilename = (url) => {
+            const filename = url.split('/').pop();
+            const firstDashIndex = filename.indexOf('-');
+            return firstDashIndex > -1 ? filename.substring(firstDashIndex + 1) : filename;
+        };
         const adjustTextToFit = (card) => {
             const shrink = (element, minSize) => {
                 let fontSize = parseFloat(window.getComputedStyle(element).fontSize);
@@ -159,25 +161,28 @@
             const winHeight = parseInt(options.height || '450px', 10);
             win.style.width = `${winWidth}px`; win.style.height = `${winHeight}px`;
             
-            if (options.pos) { // Posició explícita (per al 'Benvinguda')
+            if (options.pos) {
                 win.style.left = options.pos.left; win.style.top = options.pos.top;
-            } else if (options.isFolder) { // Finestra de carpeta
+            } else if (options.isFolder) {
                 let pos = folderPositions[id] || presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length];
                 folderPositions[id] = pos; nextFolderPositionIndex++;
                 win.style.left = `${pos.left}px`; win.style.top = `${pos.top}px`;
-            } else if (options.parentWindow) { // Finestra filla
+            } else if (options.parentWindow) {
                 const parent = options.parentWindow;
                 let left = parent.offsetLeft + 20;
                 let top = parent.offsetTop + 35;
                 if (left + winWidth > desktop.offsetWidth || top + winHeight > desktop.offsetHeight) {
-                    windowCascadeCount = 0; // Reinicia la cascada si se surt de la pantalla
+                    windowCascadeCount = 0;
                     left = windowStartX;
                     top = 40;
                 }
                 win.style.left = `${left}px`; win.style.top = `${top}px`;
-            } else { // Cascada per defecte (si no hi ha pare)
-                const offset = (windowCascadeCount++ % 8) * 35;
-                win.style.left = `${windowStartX + offset}px`; win.style.top = `${40 + offset}px`;
+            } else {
+                const cascadeIndex = windowCascadeCount++ % 8; 
+                const x_offset = cascadeIndex * 20;
+                const y_offset = cascadeIndex * 35;
+                win.style.left = `${windowStartX + x_offset}px`;
+                win.style.top = `${40 + y_offset}px`;
             }
 
             win.style.zIndex = zIndexCounter++;
@@ -276,10 +281,8 @@
                 const response = await fetch(`/api/item/${type}/${id}`);
                 const item = await response.json();
                 if (!item) { console.error("No s'ha trobat l'element:", type, id); return; }
-
                 let fileContentHTML = '', fileTitle = `${item.title}.txt`, windowOptions = {};
-                const parentWindow = event.target.closest('.window'); // Captura la finestra "mare"
-
+                const parentWindow = event.target.closest('.window');
                 if (type === 'project') {
                     const data = item.data || {};
                     const technologies = (data.technologies || []).map(tech => `<li>${tech}</li>`).join('');
@@ -294,7 +297,6 @@
                     windowOptions = { contentClass: 'document-view', width: '800px', height: '850px', parentWindow };
                 }
                 const win = createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
-
                 if (type === 'project') {
                     const galleryThumbs = win.querySelector(`#gallery-thumbs-${id}`);
                     let screenshots = item.data.screenshots || [];
@@ -308,13 +310,13 @@
             if (allSrcs && allSrcs.length > 1) {
                 tabsHTML += '<div class="browser-tabs">';
                 allSrcs.forEach(src => {
-                    const imageName = src.split('/').pop();
+                    const imageName = getCleanFilename(src);
                     const isActive = src === currentSrc ? 'active' : '';
                     tabsHTML += `<div class="browser-tab ${isActive}" data-src="${src}" title="${imageName}">${imageName}</div>`;
                 });
                 tabsHTML += '</div>';
             }
-            const imageName = currentSrc.split('/').pop();
+            const imageName = getCleanFilename(currentSrc);
             const projectUrlName = projectTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
             imageModalOverlay.innerHTML = `<div id="image-modal-browser"><div class="browser-title-bar"><span id="browser-title">${imageName} - Visor d'Imatges</span><button class="browser-close-btn">&times;</button></div>${tabsHTML}<div class="browser-toolbar"><button>&lt;</button><button>&gt;</button><button>&#x21bb;</button><button>&#8962;</button><div class="browser-address-bar" id="browser-address">http://${projectUrlName}/${imageName}</div></div><div class="browser-body"><img id="modal-image" src="${currentSrc}" alt="Captura ampliada"><div id="browser-scroll-hint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M12 19L7 14M12 19L17 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Fes scroll</div></div></div>`;
             const browserBody = imageModalOverlay.querySelector('.browser-body');
@@ -325,7 +327,7 @@
             tabsContainer?.addEventListener('click', (e) => {
                 if (!e.target.classList.contains('browser-tab') || e.target.classList.contains('active')) return;
                 const newSrc = e.target.dataset.src;
-                const newImageName = newSrc.split('/').pop();
+                const newImageName = getCleanFilename(newSrc);
                 imageModalOverlay.querySelector('#modal-image').src = newSrc;
                 imageModalOverlay.querySelector('#browser-title').textContent = `${newImageName} - Visor d'Imatges`;
                 imageModalOverlay.querySelector('#browser-address').textContent = `http://${projectUrlName}/${newImageName}`;
