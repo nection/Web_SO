@@ -40,11 +40,12 @@
         .card-image-placeholder { display: flex; align-items: center; justify-content: center; font-size: 3em; color: #adb5bd; height: 100%; }
         .card-body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #495057; }
         .card-body h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin: 0 0 8px 0; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-body p { margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; /* <-- AQUESTA ÉS LA LÍNIA AFEGIDA PER CORREGIR L'AVÍS */ -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+        .card-body p { margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .window .content.document-view { padding: 40px 50px; font-family: "Times New Roman", Times, serif; line-height: 1.7; color: #222; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
         .document-view * { max-width: 100%; } .document-view img { height: auto; border: 1px solid #ccc; padding: 3px; background: #fff; margin: 10px 0; } .document-view h1 { font-family: 'VT323', monospace, sans-serif; font-size: 28px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #ccc; color: #000; } .document-view p { white-space: normal; text-align: left; } .document-view a { color: #0000ff; text-decoration: underline; } .document-view a:hover { color: #ff0000; } .document-view .date { font-style: italic; color: #666; font-size: 0.9em; margin-bottom: 20px; display: block; text-align: right; } .document-view ul, .document-view ol { padding-left: 40px; } .document-view li { margin-bottom: 10px; }
-        .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; }
-        .search-input { width: 100%; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; display: flex; gap: 10px; align-items: center; }
+        .search-input { flex-grow: 1; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        .sort-select { padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: white; font-family: 'VT323', monospace, sans-serif; }
     </style>
 </head>
 
@@ -89,7 +90,8 @@
                 <li><b>Obre els arxius:</b> Un cop dins d'una carpeta, fes doble clic sobre qualsevol targeta per llegir el contingut complet en una nova finestra.</li>
                 <li><b>Gestiona el teu espai:</b> Pots arrossegar les finestres per organitzar l'escriptori. També pots redimensionar-les des de qualsevol costat o cantonada.</li>
                 <li><b>Minimitza finestres:</b> Utilitza el botó "_" per amagar una finestra a la barra de tasques i recuperar-la més tard fent-hi clic.</li>
-                <li><b>Cerca Instantània:</b> A dins de cada carpeta, trobaràs una barra de cerca per filtrar els arxius ràpidament. La cerca es fa directament al servidor per a màxima eficiència.</li>
+                <li><b>Cerca Instantània i Avançada:</b> Dins de cada carpeta, trobaràs una barra de cerca potent per filtrar els arxius ràpidament. La cerca és tolerant a errors i busca dins dels títols i continguts.</li>
+                <li><b>Ordena els resultats:</b> Utilitza el menú desplegable al costat de la cerca per ordenar els elements com prefereixis (per rellevància, més nous o més antics).</li>
             </ul>
             <p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p>
         `;
@@ -199,14 +201,15 @@
 
         const fetchWindowData = async (type) => {
             const state = windowStates[type];
-            if (state.isLoading || state.currentPage > state.totalPages) return;
+            if (!state || state.isLoading || (state.currentPage > state.totalPages && state.totalPages !== 0)) return;
 
             state.isLoading = true;
             const pluralType = getPluralType(type);
-            const url = `/api/public/data/${pluralType}?page=${state.currentPage}&q=${encodeURIComponent(state.query)}`;
+            const url = `/api/public/data/${pluralType}?page=${state.currentPage}&q=${encodeURIComponent(state.query)}&sort=${state.sort}`;
             
             try {
                 const response = await fetch(url);
+                if (!response.ok) throw new Error('Error de xarxa');
                 const data = await response.json();
                 renderWindowItems(type, data.items);
                 state.totalPages = data.totalPages;
@@ -214,7 +217,7 @@
             } catch (error) {
                 console.error("Error carregant dades:", error);
                 const container = document.getElementById(`${type}-files-container`);
-                if (container) container.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error en carregar les dades.</p>';
+                if (container && state.currentPage === 1) container.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error en carregar les dades.</p>';
             } finally {
                 state.isLoading = false;
             }
@@ -225,7 +228,7 @@
             if (!container) return;
 
             if (items.length === 0 && windowStates[type].currentPage === 1) {
-                container.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No s\'han trobat resultats.</p>';
+                container.innerHTML = '<p style="text-align:center; width:100%; color:#666; padding-top: 20px;">No s\'han trobat resultats.</p>';
                 return;
             }
 
@@ -244,38 +247,67 @@
             const pluralType = getPluralType(type);
             const windowId = `window-${pluralType}`;
             
-            const existingWindow = document.getElementById(windowId);
-            if (existingWindow) {
-                existingWindow.style.display = 'flex';
-                existingWindow.style.zIndex = zIndexCounter++;
-                updateActiveState(windowId);
+            if (document.getElementById(windowId)) {
+                createWindow(windowId, windowTitle); // Funció per portar al davant una finestra existent
                 return;
             }
-
+            
             windowStates[type] = {
-                currentPage: 1,
-                totalPages: 1,
-                isLoading: false,
-                query: ''
+                currentPage: 1, totalPages: 1, isLoading: false,
+                query: '', sort: 'newest'
             };
             
-            const content = `<div class="search-bar-container"><input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca..."></div><div class="files-container" id="${type}-files-container"></div>`;
+            const content = `
+                <div class="search-bar-container">
+                    <input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca...">
+                    <select id="${type}-sort-select" class="sort-select">
+                        <option value="relevance" disabled>Rellevància</option>
+                        <option value="newest" selected>Més nou</option>
+                        <option value="oldest">Més antic</option>
+                    </select>
+                </div>
+                <div class="files-container" id="${type}-files-container"></div>`;
+                
             const windowOptions = { isFolder: true, contentClass: 'folder-view', width: '870px', height: '550px', type: type };
-            
-            const win = createWindow(windowId, windowTitle, content, windowOptions);
+            createWindow(windowId, windowTitle, content, windowOptions);
             
             const searchInput = document.getElementById(`${type}-search-input`);
+            const sortSelect = document.getElementById(`${type}-sort-select`);
             const filesContainer = document.getElementById(`${type}-files-container`);
 
-            const debouncedSearch = debounce(() => {
+            const resetAndFetch = (type) => {
                 const state = windowStates[type];
-                state.query = searchInput.value;
                 state.currentPage = 1;
                 state.totalPages = 1;
                 filesContainer.innerHTML = '';
                 fetchWindowData(type);
+            };
+
+            const debouncedSearch = debounce(() => {
+                const state = windowStates[type];
+                const newQuery = searchInput.value;
+                if (state.query === newQuery) return; // No fer res si la cerca no ha canviat
+                
+                state.query = newQuery;
+                if (state.query) {
+                    state.sort = 'relevance';
+                    sortSelect.value = 'relevance';
+                    sortSelect.querySelector('option[value="relevance"]').disabled = false;
+                } else {
+                    state.sort = 'newest';
+                    sortSelect.value = 'newest';
+                    sortSelect.querySelector('option[value="relevance"]').disabled = true;
+                }
+                resetAndFetch(type);
             }, 400);
+
             searchInput.addEventListener('input', debouncedSearch);
+
+            sortSelect.addEventListener('change', () => {
+                const state = windowStates[type];
+                state.sort = sortSelect.value;
+                resetAndFetch(type);
+            });
 
             filesContainer.addEventListener('scroll', () => {
                 if (filesContainer.scrollTop + filesContainer.clientHeight >= filesContainer.scrollHeight * 0.8) {
