@@ -9,6 +9,9 @@ const Fuse = require('fuse.js');
 const app = express();
 const port = 3001;
 
+// NOU: Cache per als resultats de cerca per restaurar la paginació i el rendiment.
+const searchCache = new Map();
+
 const DB_PATH = path.join(__dirname, 'portfolio.db');
 const OLD_DB_PATH = path.join(__dirname, 'portfolio_VELL.db');
 
@@ -64,10 +67,8 @@ async function migrateProjectSchema(db) {
                 try {
                     await new Promise((res, rej) => db.run('BEGIN TRANSACTION;', e => e ? rej(e) : res()));
                     await new Promise((res, rej) => db.run('ALTER TABLE projects RENAME TO projects_old;', e => e ? rej(e) : res()));
-                    console.log('[MIGRACIÓ D\'ESTRUCTURA] ... Taula antiga renombrada.');
                     const createNewTableSql = `CREATE TABLE projects (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, url TEXT, imageUrl TEXT, status TEXT NOT NULL DEFAULT 'published', data TEXT)`;
                     await new Promise((res, rej) => db.run(createNewTableSql, e => e ? rej(e) : res()));
-                    console.log('[MIGRACIÓ D\'ESTRUCTURA] ... Nova taula `projects` creada.');
                     const oldProjects = await new Promise((res, rej) => db.all('SELECT * FROM projects_old;', (e, r) => e ? rej(e) : res(r)));
                     const insertStmt = db.prepare('INSERT INTO projects (id, title, url, imageUrl, status, data) VALUES (?, ?, ?, ?, ?, ?)');
                     for (const project of oldProjects) {
@@ -75,9 +76,7 @@ async function migrateProjectSchema(db) {
                         await new Promise((res, rej) => insertStmt.run(project.id, project.title, project.url, project.imageUrl, project.status, newData, e => e ? rej(e) : res()));
                     }
                     insertStmt.finalize();
-                    console.log(`[MIGRACIÓ D\'ESTRUCTURA] ... ${oldProjects.length} projectes transferits a la nova estructura.`);
                     await new Promise((res, rej) => db.run('DROP TABLE projects_old;', e => e ? rej(e) : res()));
-                    console.log('🗑️ [MIGRACIÓ D\'ESTRUCTURA] Taula antiga eliminada.');
                     await new Promise((res, rej) => db.run('COMMIT;', e => e ? rej(e) : res()));
                     console.log('✅ [MIGRACIÓ D\'ESTRUCTURA] Procés de migració completat amb èxit.');
                     resolve();
@@ -147,30 +146,53 @@ async function startServer() {
         const singularType = type === 'blog' ? 'blog' : type.slice(0, -1);
         const tableName = getTableName(singularType);
         if (!tableName) return res.status(400).json({ "error": `Tipus no vàlid: ${type}` });
+        
         const runQuery = (sql, params = []) => new Promise((resolve, reject) => db.all(sql, params, (err, rows) => err ? reject(err) : resolve(rows)));
         const getQuery = (sql, params = []) => new Promise((resolve, reject) => db.get(sql, params, (err, row) => err ? reject(err) : resolve(row)));
         
         try {
             let paginatedItems = [], totalItems = 0;
+
             if (query) {
-                const allItems = await runQuery(`SELECT * FROM ${tableName} WHERE status = 'published'`);
-                const searchKeys = tableName === 'projects' ? ['title', 'data.summary', 'data.technologies', 'data.features', 'data.description'] : (tableName === 'apps' ? ['title', 'description'] : ['title', 'content']);
-                const itemsToSearch = tableName === 'projects' ? allItems.map(item => ({...item, data: JSON.parse(item.data || '{}')})) : allItems;
-                const fuse = new Fuse(itemsToSearch, { keys: searchKeys, includeScore: true, threshold: 0.4, ignoreLocation: true });
-                const searchResults = fuse.search(query);
-                let fuzzyItems = searchResults.map(result => result.item);
-                totalItems = fuzzyItems.length;
-                if (sort === 'oldest') fuzzyItems.sort((a, b) => (tableName === 'blog' ? new Date(a.date) - new Date(b.date) : a.id - b.id));
-                else if (sort === 'newest') fuzzyItems.sort((a, b) => (tableName === 'blog' ? new Date(b.date) - new Date(a.date) : b.id - a.id));
-                // **AQUEST ÉS EL CANVI CLAU:** Paginem els resultats de la cerca abans d'enviar-los
-                paginatedItems = fuzzyItems.slice(offset, offset + limit);
+                const cacheKey = `${type}-${query}-${sort}`;
+                let sortedIds = [];
+
+                if (searchCache.has(cacheKey)) {
+                    sortedIds = searchCache.get(cacheKey);
+                } else {
+                    const allItems = await runQuery(`SELECT * FROM ${tableName} WHERE status = 'published'`);
+                    const searchKeys = tableName === 'projects' ? ['title', 'data.summary', 'data.technologies', 'data.features', 'data.description'] : (tableName === 'apps' ? ['title', 'description'] : ['title', 'content']);
+                    const itemsToSearch = tableName === 'projects' ? allItems.map(item => ({...item, data: JSON.parse(item.data || '{}')})) : allItems;
+                    const fuse = new Fuse(itemsToSearch, { keys: searchKeys, includeScore: true, threshold: 0.4, ignoreLocation: true, findAllMatches: true });
+                    const searchResults = fuse.search(query);
+                    let fuzzyItems = searchResults.map(result => result.item);
+                    if (sort === 'oldest') fuzzyItems.sort((a, b) => (tableName === 'blog' ? new Date(a.date) - new Date(b.date) : a.id - b.id));
+                    else if (sort === 'newest') fuzzyItems.sort((a, b) => (tableName === 'blog' ? new Date(b.date) - new Date(a.date) : b.id - a.id));
+                    sortedIds = fuzzyItems.map(item => item.id);
+                    searchCache.set(cacheKey, sortedIds);
+                    // Neteja la cache després d'un temps per estalviar memòria
+                    setTimeout(() => searchCache.delete(cacheKey), 300000); // 5 minuts
+                }
+
+                totalItems = sortedIds.length;
+                const idsForPage = sortedIds.slice(offset, offset + limit);
+
+                if (idsForPage.length > 0) {
+                    const placeholders = idsForPage.map(() => '?').join(',');
+                    const itemsFromDb = await runQuery(`SELECT * FROM ${tableName} WHERE id IN (${placeholders})`, idsForPage);
+                    // Re-ordena els resultats de la BD per a que coincideixin amb l'ordre de la cerca
+                    paginatedItems = idsForPage.map(id => itemsFromDb.find(item => item.id === id));
+                }
+
             } else {
+                searchCache.clear(); // Neteja la cache si ja no hi ha cerca
                 const countResult = await getQuery(`SELECT COUNT(*) as count FROM ${tableName} WHERE status = 'published'`);
                 totalItems = countResult ? countResult.count : 0;
                 let orderByClause = `ORDER BY ${tableName === 'blog' ? 'date' : 'id'} DESC`;
                 if (sort === 'oldest') orderByClause = `ORDER BY ${tableName === 'blog' ? 'date' : 'id'} ASC`;
                 paginatedItems = await runQuery(`SELECT * FROM ${tableName} WHERE status = 'published' ${orderByClause} LIMIT ? OFFSET ?`, [limit, offset]);
             }
+
             const finalItems = paginatedItems.map(item => {
                 if (tableName === 'projects') {
                     const projectData = (typeof item.data === 'string') ? JSON.parse(item.data || '{}') : item.data;
@@ -178,6 +200,7 @@ async function startServer() {
                 }
                 return { id: item.id, title: item.title, description: item.description || item.content, imageUrl: item.imageUrl };
             });
+
             res.json({ items: finalItems, totalPages: Math.ceil(totalItems / limit), currentPage: page });
         } catch (err) {
             console.error(`Error a l'endpoint /api/public/data/${type}:`, err.message);

@@ -7,6 +7,7 @@
     
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace, sans-serif; background-color: #008080; user-select: none; }
+        body.modal-open { overflow: hidden; }
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
         #menu-bar { position: fixed; top: 0; left: 0; width: 100%; height: 25px; background: #c0c0c0; border-bottom: 2px solid #808080; display: flex; align-items: center; padding: 0 10px; box-sizing: border-box; font-size: 18px; z-index: 10000; }
         #taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; background: #c0c0c0; border-top: 2px solid #ffffff; display: flex; align-items: center; padding: 0 5px; box-sizing: border-box; z-index: 10000; }
@@ -26,53 +27,69 @@
         .window .title-bar { background-color: #000080; color: white; padding: 3px 5px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: move; height: 20px; }
         .title-bar-buttons { display: flex; }
         .title-bar-buttons button { background-color: #c0c0c0; border: 1px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; font-family: 'VT323', monospace; width: 16px; height: 14px; padding: 0; margin-left: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .title-bar-buttons button:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
         .title-bar-buttons button.minimize-btn { padding-bottom: 4px; }
-        .window .content { flex-grow: 1; background-color: white; margin: 3px; color: black; font-size: 18px; display: flex; flex-direction: column; overflow: hidden; }
+        .window .content { flex-grow: 1; background-color: white; margin: 3px; color: black; font-size: 18px; display: flex; flex-direction: column; overflow: auto; }
         .resizer { position: absolute; } .resizer.n { top: -3px; left: 5px; right: 5px; height: 6px; cursor: n-resize; } .resizer.s { bottom: -3px; left: 5px; right: 5px; height: 6px; cursor: s-resize; } .resizer.e { top: 5px; bottom: 5px; right: -3px; width: 6px; cursor: e-resize; } .resizer.w { top: 5px; bottom: 5px; left: -3px; width: 6px; cursor: w-resize; } .resizer.ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; } .resizer.nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; } .resizer.se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; } .resizer.sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
-        .window .content.folder-view { padding: 0; }
+        .window .content.folder-view { padding: 0; overflow: hidden; }
         .files-container { flex: 1; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 15px; padding: 25px 15px 15px 15px; }
-        .file-card { background-color: #ffffff; cursor: pointer; overflow: hidden; border-radius: 4px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; flex-grow: 1; flex-shrink: 0; flex-basis: 260px; max-width: 300px; }
+        .file-card { background-color: #ffffff; cursor: pointer; overflow: hidden; border-radius: 4px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; flex-grow: 1; flex-shrink: 0; flex-basis: 260px; max-width: 300px; display: flex; flex-direction: column; }
         .file-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
-        .card-image { width: 100%; height: 120px; background-color: #e9ecef; background-size: cover; background-position: center; }
+        .card-image { width: 100%; height: 120px; background-color: #e9ecef; background-size: cover; background-position: center; flex-shrink: 0; }
         .card-image-placeholder { display: flex; align-items: center; justify-content: center; font-size: 3em; color: #adb5bd; height: 100%; }
-        .card-body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #495057; }
-        .card-body h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin: 0 0 8px 0; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-body p { margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+        .card-body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #495057; flex-grow: 1; display: flex; flex-direction: column; min-height: 80px; }
+        .card-body h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin: 0 0 8px 0; color: #212529; line-height: 1.2; }
+        .card-body p { margin: 0; line-height: 1.4; word-break: break-word; }
         .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; display: flex; gap: 10px; align-items: center; }
         .search-input { flex-grow: 1; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
         .sort-select { padding: 8px; font-size: 16px; border: 1px solid #ccc; border-radius: 4px; background-color: white; font-family: 'VT323', monospace, sans-serif; }
-        .document-view, .project-view { padding: 30px 40px; font-family: "Georgia", "Times New Roman", Times, serif; line-height: 1.7; color: #333; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; background-color: #fdfdfd; }
+        .document-view, .project-view { padding: 0; font-family: "Georgia", "Times New Roman", Times, serif; line-height: 1.7; color: #333; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); background-color: #fdfdfd; }
         .document-view *, .project-view * { max-width: 100%; }
+        .document-view-content { padding: 30px 40px; }
         .document-view img, .project-view img { height: auto; border: 1px solid #ccc; padding: 3px; background: #fff; margin: 10px 0; }
         .document-view h1, .project-view h1 { font-family: 'VT323', monospace, sans-serif; font-size: 32px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #ccc; color: #000; }
         .document-view p, .project-view p { white-space: normal; text-align: left; }
         .document-view a, .project-view a { color: #0056b3; text-decoration: none; border-bottom: 1px dotted #0056b3; }
         .document-view a:hover, .project-view a:hover { color: #007bff; border-bottom-style: solid; }
         .document-view .date { font-style: italic; color: #666; font-size: 0.9em; margin-bottom: 20px; display: block; text-align: right; }
-        .document-view ul, .document-view ol, .project-view ul { padding-left: 40px; }
+        .document-view ul, .document-view ol, .project-view ul { padding-left: 20px; }
         .document-view li, .project-view li { margin-bottom: 10px; }
-        .project-header { margin-bottom: 25px; }
+        .project-view-grid { display: grid; grid-template-columns: 1fr 280px; gap: 35px; padding: 30px 40px; align-items: start; }
+        .project-sidebar { border-left: 1px solid #eee; padding-left: 35px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 0.9em; position: sticky; top: 30px; }
         .project-header p { font-style: italic; color: #555; font-size: 1.1em; margin: 5px 0 15px 0; border-left: 3px solid #007bff; padding-left: 10px; }
-        .project-header .btn-visit { display: inline-block; background-color: #007bff; color: white; padding: 10px 20px; border-radius: 5px; text-decoration: none; border-bottom: none; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-weight: bold; transition: background-color 0.2s; }
-        .project-header .btn-visit:hover { background-color: #0056b3; }
-        .project-gallery { margin-bottom: 30px; }
-        .gallery-main-image { width: 100%; height: auto; max-height: 400px; object-fit: contain; border: 1px solid #ddd; margin-bottom: 10px; background-color: #f8f9fa; }
-        .gallery-thumbnails { display: flex; gap: 10px; flex-wrap: wrap; }
-        .gallery-thumbnails img { width: 100px; height: 60px; object-fit: cover; cursor: pointer; border: 2px solid #ddd; opacity: 0.7; transition: opacity 0.2s, border-color 0.2s; }
-        .gallery-thumbnails img:hover { opacity: 1; }
-        .gallery-thumbnails img.active { border-color: #007bff; opacity: 1; }
-        .project-section { margin-bottom: 30px; }
+        .project-sidebar .btn-visit { display: block; background-color: #007bff; color: white; padding: 12px 20px; margin-bottom: 25px; border-radius: 5px; text-decoration: none; border-bottom: none; font-weight: bold; text-align: center; transition: background-color 0.2s; }
+        .project-sidebar .btn-visit:hover { background-color: #0056b3; }
         .project-section h3 { font-family: 'VT323', monospace, sans-serif; font-size: 24px; border-bottom: 1px solid #eee; padding-bottom: 8px; color: #343a40; }
-        .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 0; list-style: none; }
-        .tech-tags li { background-color: #e9ecef; color: #495057; padding: 5px 12px; border-radius: 15px; font-size: 0.9em; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        .features-list { list-style: none; padding-left: 0; }
-        .features-list li { padding: 8px 0 8px 25px; border-bottom: 1px solid #f0f0f0; position: relative; }
+        .sidebar-section h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin-top: 0; margin-bottom: 15px; }
+        .tech-tags { display: flex; flex-wrap: wrap; gap: 8px; padding-left: 0; list-style: none; margin-bottom: 25px; }
+        .tech-tags li { background-color: #e9ecef; color: #495057; padding: 5px 12px; border-radius: 15px; font-size: 0.85em; }
+        .features-list { list-style: none; padding-left: 0; font-size: 0.95em; }
+        .features-list li { padding: 8px 0 8px 22px; border-bottom: 1px solid #f0f0f0; position: relative; }
         .features-list li::before { content: '✓'; color: #28a745; font-weight: bold; position: absolute; left: 0; top: 8px; }
+        .gallery-thumbnails { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .gallery-thumbnails img { width: 100%; height: 75px; object-fit: cover; cursor: zoom-in; border: 2px solid #ddd; opacity: 0.8; transition: opacity 0.2s, border-color 0.2s; }
+        .gallery-thumbnails img:hover { opacity: 1; border-color: #007bff; }
+        .image-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.8); display: none; justify-content: center; align-items: center; z-index: 20000; opacity: 0; transition: opacity 0.3s ease; padding: 2.5vh; box-sizing: border-box; }
+        .image-modal-overlay.visible { display: flex; opacity: 1; }
+        #image-modal-browser { width: 100%; height: 100%; max-width: 95vw; background-color: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+        .browser-title-bar { background-color: #000080; color: white; padding: 3px 5px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; flex-shrink: 0; }
+        .browser-close-btn { background-color: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; font-family: 'VT323', monospace; width: 18px; height: 18px; padding: 0; cursor: pointer; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .browser-close-btn:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
+        .browser-tabs { display: flex; padding: 2px 4px 0 4px; background-color: #c0c0c0; flex-shrink: 0; }
+        .browser-tab { padding: 4px 8px; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; border-bottom-width: 0; background-color: #c0c0c0; cursor: pointer; font-size: 16px; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; max-width: 150px; }
+        .browser-tab.active { background-color: #e0e0e0; border-bottom: 2px solid #e0e0e0; position: relative; top: 2px; font-weight: bold; }
+        .browser-toolbar { padding: 4px; border-bottom: 2px solid #808080; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+        .browser-toolbar button { font-family: 'VT323', monospace; font-size: 18px; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; background-color: #c0c0c0; padding: 2px 6px; }
+        .browser-address-bar { flex-grow: 1; background-color: white; padding: 4px 6px; border: 2px inset #808080; font-size: 18px; white-space: nowrap; overflow: hidden; font-family: -apple-system, sans-serif; font-size: 14px; }
+        .browser-body { flex-grow: 1; background-color: #fff; border: 2px inset #808080; margin: 4px; overflow-y: auto; position: relative; }
+        #modal-image { display: block; width: 100%; height: auto; }
+        #browser-scroll-hint { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 15px; border-radius: 20px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto; font-size: 14px; display: flex; align-items: center; gap: 8px; opacity: 1; transition: opacity 0.5s ease 0.5s; pointer-events: none; }
+        #browser-scroll-hint.hidden { opacity: 0; }
     </style>
 </head>
 
 <body>
-    <div id="menu-bar"><span><b>El Meu Portafolis</b> v4.2</span></div>
+    <div id="menu-bar"><span><b>El Meu Portafolis</b> v4.15</span></div>
     <div id="desktop">
         <div id="desktop-icons">
             <div class="icon" id="icon-readme" tabindex="0"><img src="file.png" alt="Arxiu Llegeix-me"><span>Llegeix-me.txt</span></div>
@@ -87,6 +104,10 @@
         <div id="clock"></div>
     </div>
 
+    <div id="image-modal-overlay" class="image-modal-overlay">
+        <!-- Contingut generat per JS -->
+    </div>
+
     <script>
     document.addEventListener('DOMContentLoaded', () => {
         let zIndexCounter = 10;
@@ -94,25 +115,30 @@
         let windowCascadeCount = 0;
         const folderPositions = {};
         let nextFolderPositionIndex = 0;
-        const presetFolderPositions = [ { top: 40, left: 20 }, { top: 70, left: 180 }, { top: 100, left: 90 }];
+        
+        const windowStartX = 150;
+        const presetFolderPositions = [ { top: 40, left: windowStartX }, { top: 70, left: windowStartX + 160 }, { top: 100, left: windowStartX + 70 }];
+        
         const windowStates = {};
-
-        const welcomeContentHTML = `
-            <h1>Benvingut/da al meu Portafolis Interactiu!</h1>
-            <p>Hola! Soc <strong>[El Teu Nom]</strong>, un/a desenvolupador/a i entusiasta de la tecnologia amb ganes de crear experiències úniques.</p>
-            <p>Aquesta web simula un escriptori d'un sistema operatiu clàssic. Està dissenyada per ser una forma original i divertida de mostrar els meus treballs. Aquí tens una petita guia per començar a explorar:</p>
-            <ul>
-                <li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen.</li>
-                <li><b>Descobreix els Projectes:</b> La secció de projectes té un disseny especial per mostrar cada treball de forma atractiva, amb galeria d'imatges, tecnologies i molt més.</li>
-                <li><b>Cerca Avançada:</b> La cerca és potent i tolera errors tipogràfics. Prova d'escriure "Barceona" si un projecte conté "Barcelona"!</li>
-                <li><b>Gestiona el teu espai:</b> Pots arrossegar, redimensionar i minimitzar les finestres per organitzar el teu escriptori.</li>
-            </ul>
-            <p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p>
-        `;
+        const imageModalOverlay = document.getElementById('image-modal-overlay');
+        
+        const welcomeContentHTML = `<div class="document-view-content"><h1>Benvingut/da al meu Portafolis Interactiu!</h1><p>Hola! Soc <strong>[El Teu Nom]</strong>, un/a desenvolupador/a i entusiasta de la tecnologia amb ganes de crear experiències úniques.</p><p>Aquesta web simula un escriptori d'un sistema operatiu clàssic. Està dissenyada per ser una forma original i divertida de mostrar els meus treballs. Aquí tens una petita guia per començar a explorar:</p><ul><li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen.</li><li><b>Descobreix els Projectes:</b> La secció de projectes té un disseny especial. Fes clic a les imatges de la galeria per veure-les en un visor retro amb pestanyes i fer scroll si són llargues!</li><li><b>Cerca Avançada:</b> La cerca és potent i tolera errors tipogràfics. Prova d'escriure "Barceona" si un projecte conté "Barcelona"!</li><li><b>Gestiona el teu espai:</b> Pots arrossegar, redimensionar i minimitzar les finestres per organitzar el teu escriptori.</li></ul><p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p></div>`;
 
         const stripHtml = (html) => { let tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ""; }
         const getPluralType = (type) => type === 'blog' ? type : type + 's';
         const debounce = (func, delay) => { let timeout; return function(...args) { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
+
+        const adjustTextToFit = (card) => {
+            const shrink = (element, minSize) => {
+                let fontSize = parseFloat(window.getComputedStyle(element).fontSize);
+                while ((element.scrollHeight > element.clientHeight || element.scrollWidth > element.clientWidth) && fontSize > minSize) {
+                    fontSize -= 0.5;
+                    element.style.fontSize = `${fontSize}px`;
+                }
+            };
+            shrink(card.querySelector('h4'), 14);
+            shrink(card.querySelector('p'), 9);
+        };
 
         const updateActiveState = (windowId) => {
             document.querySelectorAll('.window').forEach(win => win.classList.toggle('active', win.id === windowId));
@@ -133,21 +159,25 @@
             const winHeight = parseInt(options.height || '450px', 10);
             win.style.width = `${winWidth}px`; win.style.height = `${winHeight}px`;
             
-            if (options.pos?.left && options.pos?.top) { win.style.left = options.pos.left; win.style.top = options.pos.top; }
-            else if (options.isFolder) {
+            if (options.pos) { // Posició explícita (per al 'Benvinguda')
+                win.style.left = options.pos.left; win.style.top = options.pos.top;
+            } else if (options.isFolder) { // Finestra de carpeta
                 let pos = folderPositions[id] || presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length];
                 folderPositions[id] = pos; nextFolderPositionIndex++;
-                const desktopWidth = desktop.offsetWidth, desktopHeight = desktop.offsetHeight;
-                let finalLeft = pos.left, finalTop = pos.top;
-                if (finalLeft + winWidth > desktopWidth) finalLeft = Math.max(10, desktopWidth - winWidth - 20);
-                if (finalTop + winHeight > desktopHeight) finalTop = Math.max(10, desktopHeight - winHeight - 20);
-                win.style.left = `${finalLeft}px`; win.style.top = `${finalTop}px`;
-            } else {
-                const offset = (windowCascadeCount++ % 10) * 30;
-                let left = 40 + offset, top = 40 + offset;
-                if (left + winWidth > desktop.offsetWidth) left = Math.max(10, desktop.offsetWidth - winWidth - 20);
-                if (top + winHeight > desktop.offsetHeight) top = Math.max(10, desktop.offsetHeight - winHeight - 20);
+                win.style.left = `${pos.left}px`; win.style.top = `${pos.top}px`;
+            } else if (options.parentWindow) { // Finestra filla
+                const parent = options.parentWindow;
+                let left = parent.offsetLeft + 20;
+                let top = parent.offsetTop + 35;
+                if (left + winWidth > desktop.offsetWidth || top + winHeight > desktop.offsetHeight) {
+                    windowCascadeCount = 0; // Reinicia la cascada si se surt de la pantalla
+                    left = windowStartX;
+                    top = 40;
+                }
                 win.style.left = `${left}px`; win.style.top = `${top}px`;
+            } else { // Cascada per defecte (si no hi ha pare)
+                const offset = (windowCascadeCount++ % 8) * 35;
+                win.style.left = `${windowStartX + offset}px`; win.style.top = `${40 + offset}px`;
             }
 
             win.style.zIndex = zIndexCounter++;
@@ -188,28 +218,30 @@
                 renderWindowItems(type, data.items);
                 state.totalPages = data.totalPages;
                 state.currentPage++;
-            } catch (error) {
-                console.error("Error carregant dades:", error);
-                const container = document.getElementById(`${type}-files-container`);
-                if (container && state.currentPage === 1) container.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error en carregar les dades.</p>';
-            } finally { state.isLoading = false; }
+            } catch (error) { console.error("Error carregant dades:", error); const container = document.getElementById(`${type}-files-container`); if (container && state.currentPage === 1) container.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error en carregar les dades.</p>'; } finally { state.isLoading = false; }
         };
 
         const renderWindowItems = (type, items) => {
             const container = document.getElementById(`${type}-files-container`);
             if (!container) return;
-            if (items.length === 0 && windowStates[type].currentPage === 1) {
-                container.innerHTML = '<p style="text-align:center; width:100%; color:#666; padding-top: 20px;">No s\'han trobat resultats.</p>';
-                return;
-            }
-            let filesHTML = '';
+            if (items.length === 0 && windowStates[type].currentPage === 1) { container.innerHTML = '<p style="text-align:center; width:100%; color:#666; padding-top: 20px;">No s\'han trobat resultats.</p>'; return; }
+            const fragment = document.createDocumentFragment();
             items.forEach(item => {
-                const snippet = stripHtml(item.description || '').substring(0, 100);
+                const snippet = stripHtml(item.description || '');
                 const imageStyle = item.imageUrl ? `background-image: url('${item.imageUrl}')` : '';
                 const imagePlaceholder = !item.imageUrl ? '<div class="card-image-placeholder">🖼️</div>' : '';
-                filesHTML += `<div class="file-card" data-type="${type}" data-id="${item.id}"><div class="card-image" style="${imageStyle}">${imagePlaceholder}</div><div class="card-body"><h4>${item.title}</h4><p>${snippet}...</p></div></div>`;
+                const card = document.createElement('div');
+                card.className = 'file-card';
+                card.dataset.type = type;
+                card.dataset.id = item.id;
+                card.innerHTML = `<div class="card-image" style="${imageStyle}">${imagePlaceholder}</div><div class="card-body"><h4>${item.title}</h4><p>${snippet}</p></div>`;
+                fragment.appendChild(card);
             });
-            container.innerHTML += filesHTML;
+            container.appendChild(fragment);
+            container.querySelectorAll('.file-card:not(.text-adjusted)').forEach(card => {
+                adjustTextToFit(card);
+                card.classList.add('text-adjusted');
+            });
         };
 
         const createFolderWindow = (type, windowTitle) => {
@@ -218,18 +250,12 @@
             if (document.getElementById(windowId)) { createWindow(windowId, windowTitle); return; }
             windowStates[type] = { currentPage: 1, totalPages: 1, isLoading: false, query: '', sort: 'newest' };
             const content = `<div class="search-bar-container"><input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca..."><select id="${type}-sort-select" class="sort-select"><option value="relevance" disabled>Rellevància</option><option value="newest" selected>Més nou</option><option value="oldest">Més antic</option></select></div><div class="files-container" id="${type}-files-container"></div>`;
-            
-            // MIDA DE LES FINESTRES DE CARPETA AUGMENTADA
             const windowOptions = { isFolder: true, contentClass: 'folder-view', width: '920px', height: '650px', type: type };
-            
             createWindow(windowId, windowTitle, content, windowOptions);
             const searchInput = document.getElementById(`${type}-search-input`);
             const sortSelect = document.getElementById(`${type}-sort-select`);
             const filesContainer = document.getElementById(`${type}-files-container`);
-            const resetAndFetch = () => {
-                const state = windowStates[type];
-                state.currentPage = 1; state.totalPages = 1; filesContainer.innerHTML = ''; fetchWindowData(type);
-            };
+            const resetAndFetch = () => { const state = windowStates[type]; state.currentPage = 1; state.totalPages = 1; filesContainer.innerHTML = ''; fetchWindowData(type); };
             const debouncedSearch = debounce(() => {
                 const state = windowStates[type];
                 state.query = searchInput.value;
@@ -252,58 +278,79 @@
                 if (!item) { console.error("No s'ha trobat l'element:", type, id); return; }
 
                 let fileContentHTML = '', fileTitle = `${item.title}.txt`, windowOptions = {};
+                const parentWindow = event.target.closest('.window'); // Captura la finestra "mare"
 
                 if (type === 'project') {
                     const data = item.data || {};
                     const technologies = (data.technologies || []).map(tech => `<li>${tech}</li>`).join('');
                     const features = (data.features || []).map(feature => `<li>${feature}</li>`).join('');
                     const screenshots = data.screenshots || [];
-                    const thumbnails = screenshots.map((src, index) => `<img src="${src}" class="thumb ${index === 0 ? 'active' : ''}" data-index="${index}">`).join('');
-                    
-                    fileContentHTML = `
-                        <div class="project-header">
-                            <h1>${item.title}</h1>
-                            ${data.summary ? `<p>${data.summary}</p>` : ''}
-                            ${item.url ? `<a href="${item.url}" target="_blank" class="btn-visit">Visitar Projecte &rarr;</a>` : ''}
-                        </div>
-                        ${screenshots.length > 0 ? `
-                        <div class="project-gallery">
-                            <img src="${screenshots[0]}" id="gallery-main-${id}" class="gallery-main-image">
-                            <div class="gallery-thumbnails" id="gallery-thumbs-${id}">${thumbnails}</div>
-                        </div>` : ''}
-                        ${technologies ? `<div class="project-section"><h3>Tecnologies</h3><ul class="tech-tags">${technologies}</ul></div>` : ''}
-                        ${features ? `<div class="project-section"><h3>Característiques Clau</h3><ul class="features-list">${features}</ul></div>` : ''}
-                        ${data.description ? `<div class="project-section"><h3>Descripció</h3>${data.description}</div>` : ''}
-                    `;
-                    // MIDA DE LA FINESTRA DE PROJECTE AUGMENTADA
-                    windowOptions = { contentClass: 'project-view', width: '850px', height: '700px' };
-                } else { // Per a Blog i Apps
-                    fileContentHTML = type === 'blog'
-                        ? `<h1>${item.title}</h1><div class="date">${new Date(item.date).toLocaleDateString()}</div>${item.content}`
-                        : item.description;
-                    // MIDA DE LES FINESTRES DE DOCUMENT (BLOG/APP) AUGMENTADA
-                    windowOptions = { contentClass: 'document-view', width: '750px', height: '700px' };
+                    const thumbnails = screenshots.map((src) => `<img src="${src}" class="thumb" data-src="${src}">`).join('');
+                    fileContentHTML = `<div class="project-view-grid"><div class="project-main-content"><div class="project-header"><h1>${item.title}</h1>${data.summary ? `<p>${data.summary}</p>` : ''}</div>${data.description ? `<div class="project-section">${data.description}</div>` : ''}</div><div class="project-sidebar">${item.url ? `<a href="${item.url}" target="_blank" class="btn-visit">Visitar Projecte &rarr;</a>` : ''}${technologies ? `<div class="sidebar-section"><h4>Tecnologies</h4><ul class="tech-tags">${technologies}</ul></div>` : ''}${features ? `<div class="sidebar-section"><h4>Característiques</h4><ul class="features-list">${features}</ul></div>` : ''}${screenshots.length > 0 ? `<div class="sidebar-section"><h4>Captures</h4><div class="gallery-thumbnails" id="gallery-thumbs-${id}">${thumbnails}</div></div>` : ''}</div></div>`;
+                    windowOptions = { contentClass: 'project-view', width: '950px', height: '850px', parentWindow };
+                } else {
+                    const content = type === 'blog' ? `<h1>${item.title}</h1><div class="date">${new Date(item.date).toLocaleDateString()}</div>${item.content}` : item.description;
+                    fileContentHTML = `<div class="document-view-content">${content}</div>`;
+                    windowOptions = { contentClass: 'document-view', width: '800px', height: '850px', parentWindow };
                 }
                 const win = createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
 
                 if (type === 'project') {
-                    const mainImage = win.querySelector(`#gallery-main-${id}`);
-                    win.querySelector(`#gallery-thumbs-${id}`)?.addEventListener('click', e => {
-                        if (e.target.classList.contains('thumb')) {
-                            mainImage.src = e.target.src;
-                            win.querySelectorAll('.thumb').forEach(t => t.classList.remove('active'));
-                            e.target.classList.add('active');
-                        }
-                    });
+                    const galleryThumbs = win.querySelector(`#gallery-thumbs-${id}`);
+                    let screenshots = item.data.screenshots || [];
+                    galleryThumbs?.addEventListener('click', e => { if (e.target.classList.contains('thumb')) { openImageModal(e.target.dataset.src, screenshots, item.title); } });
                 }
             } catch(error) { console.error("No s'ha pogut obrir l'arxiu:", error); alert("Error: no s'ha pogut carregar el contingut d'aquest arxiu."); }
         };
+
+        const openImageModal = (currentSrc, allSrcs, projectTitle) => {
+            let tabsHTML = '';
+            if (allSrcs && allSrcs.length > 1) {
+                tabsHTML += '<div class="browser-tabs">';
+                allSrcs.forEach(src => {
+                    const imageName = src.split('/').pop();
+                    const isActive = src === currentSrc ? 'active' : '';
+                    tabsHTML += `<div class="browser-tab ${isActive}" data-src="${src}" title="${imageName}">${imageName}</div>`;
+                });
+                tabsHTML += '</div>';
+            }
+            const imageName = currentSrc.split('/').pop();
+            const projectUrlName = projectTitle.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+            imageModalOverlay.innerHTML = `<div id="image-modal-browser"><div class="browser-title-bar"><span id="browser-title">${imageName} - Visor d'Imatges</span><button class="browser-close-btn">&times;</button></div>${tabsHTML}<div class="browser-toolbar"><button>&lt;</button><button>&gt;</button><button>&#x21bb;</button><button>&#8962;</button><div class="browser-address-bar" id="browser-address">http://${projectUrlName}/${imageName}</div></div><div class="browser-body"><img id="modal-image" src="${currentSrc}" alt="Captura ampliada"><div id="browser-scroll-hint"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 5V19M12 19L7 14M12 19L17 14" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>Fes scroll</div></div></div>`;
+            const browserBody = imageModalOverlay.querySelector('.browser-body');
+            const scrollHint = imageModalOverlay.querySelector('#browser-scroll-hint');
+            browserBody.onscroll = () => { scrollHint.classList.add('hidden'); };
+            imageModalOverlay.querySelector('.browser-close-btn').addEventListener('click', closeImageModal);
+            const tabsContainer = imageModalOverlay.querySelector('.browser-tabs');
+            tabsContainer?.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('browser-tab') || e.target.classList.contains('active')) return;
+                const newSrc = e.target.dataset.src;
+                const newImageName = newSrc.split('/').pop();
+                imageModalOverlay.querySelector('#modal-image').src = newSrc;
+                imageModalOverlay.querySelector('#browser-title').textContent = `${newImageName} - Visor d'Imatges`;
+                imageModalOverlay.querySelector('#browser-address').textContent = `http://${projectUrlName}/${newImageName}`;
+                tabsContainer.querySelectorAll('.browser-tab').forEach(tab => tab.classList.remove('active'));
+                e.target.classList.add('active');
+                browserBody.scrollTop = 0;
+                scrollHint.classList.remove('hidden');
+            });
+            imageModalOverlay.classList.add('visible');
+            document.body.classList.add('modal-open');
+        };
+
+        const closeImageModal = () => {
+            imageModalOverlay.classList.remove('visible');
+            document.body.classList.remove('modal-open');
+        };
+
+        imageModalOverlay.addEventListener('click', (e) => { if (e.target === imageModalOverlay) closeImageModal(); });
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && imageModalOverlay.classList.contains('visible')) closeImageModal(); });
 
         const makeDraggable = (element) => { let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0; const header = element.querySelector('.title-bar'); if (header) header.onmousedown = dragMouseDown; function dragMouseDown(e) { e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; } function elementDrag(e) { e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; } function closeDragElement() { document.onmouseup = null; document.onmousemove = null; } };
         const makeResizable = (element) => { const resizers = element.querySelectorAll('.resizer'); const minimum_size = 200; let original_width = 0, original_height = 0, original_x = 0, original_y = 0; let original_mouse_x = 0, original_mouse_y = 0; resizers.forEach(resizer => { resizer.addEventListener('mousedown', (e) => { e.preventDefault(); original_width = parseFloat(getComputedStyle(element, null).getPropertyValue('width').replace('px', '')); original_height = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', '')); original_x = element.getBoundingClientRect().left; original_y = element.getBoundingClientRect().top; original_mouse_x = e.pageX; original_mouse_y = e.pageY; window.addEventListener('mousemove', resize); window.addEventListener('mouseup', stopResize); function resize(e) { if (resizer.classList.contains('se')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height + (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('sw')) { const height = original_height + (e.pageY - original_mouse_y); const width = original_width - (e.pageX - original_mouse_x); if (height > minimum_size) element.style.height = height + 'px'; if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } else if (resizer.classList.contains('ne')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('nw')) { const width = original_width - (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('n')) { const height = original_height - (e.pageY - original_mouse_y); if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('s')) { const height = original_height + (e.pageY - original_mouse_y); if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('e')) { const width = original_width + (e.pageX - original_mouse_x); if (width > minimum_size) element.style.width = width + 'px'; } else if (resizer.classList.contains('w')) { const width = original_width - (e.pageX - original_mouse_x); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } } function stopResize() { window.removeEventListener('mousemove', resize); } }); }); }
         const updateClock = () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, '0'); const minutes = String(now.getMinutes()).padStart(2, '0'); document.getElementById('clock').textContent = `${hours}:${minutes}`; }
         const showWelcomeWindow = () => {
-            const desktopWidth = desktop.offsetWidth, desktopHeight = desktop.offsetHeight; let winWidth = 600, winHeight = 500;
+            const desktopWidth = desktop.offsetWidth, desktopHeight = desktop.offsetHeight; let winWidth = 800, winHeight = 700;
             if (winWidth > desktopWidth - 40) winWidth = desktopWidth - 40; if (winHeight > desktopHeight - 40) winHeight = desktopHeight - 40;
             const centerLeft = (desktopWidth / 2) - (winWidth / 2), centerTop = (desktopHeight / 2) - (winHeight / 2);
             const options = { pos: {left: `${centerLeft}px`, top: `${centerTop}px`}, contentClass: 'document-view', width: `${winWidth}px`, height: `${winHeight}px` };
