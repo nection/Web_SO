@@ -6,7 +6,7 @@
     <title>El Meu Portafolis</title>
     
     <!-- ====================================================== -->
-    <!-- === BLOC 1: ESTILS CSS (SENSE CANVIS) ================= -->
+    <!-- === BLOC 1: ESTILS CSS =============================== -->
     <!-- ====================================================== -->
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace, sans-serif; background-color: #008080; user-select: none; }
@@ -40,18 +40,17 @@
         .card-image-placeholder { display: flex; align-items: center; justify-content: center; font-size: 3em; color: #adb5bd; height: 100%; }
         .card-body { padding: 12px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 14px; color: #495057; }
         .card-body h4 { font-family: 'VT323', monospace, sans-serif; font-size: 20px; margin: 0 0 8px 0; color: #212529; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .card-body p { margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
+        .card-body p { margin: 0; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; /* <-- AQUESTA ÉS LA LÍNIA AFEGIDA PER CORREGIR L'AVÍS */ -webkit-box-orient: vertical; overflow: hidden; text-overflow: ellipsis; }
         .window .content.document-view { padding: 40px 50px; font-family: "Times New Roman", Times, serif; line-height: 1.7; color: #222; box-shadow: inset 0 0 10px rgba(0,0,0,0.1); overflow-y: auto; }
         .document-view * { max-width: 100%; } .document-view img { height: auto; border: 1px solid #ccc; padding: 3px; background: #fff; margin: 10px 0; } .document-view h1 { font-family: 'VT323', monospace, sans-serif; font-size: 28px; margin-top: 0; padding-bottom: 10px; border-bottom: 1px solid #ccc; color: #000; } .document-view p { white-space: normal; text-align: left; } .document-view a { color: #0000ff; text-decoration: underline; } .document-view a:hover { color: #ff0000; } .document-view .date { font-style: italic; color: #666; font-size: 0.9em; margin-bottom: 20px; display: block; text-align: right; } .document-view ul, .document-view ol { padding-left: 40px; } .document-view li { margin-bottom: 10px; }
         .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; }
         .search-input { width: 100%; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
     </style>
-    <!-- El link a clippy.css ha estat eliminat -->
 </head>
 
 <body>
 
-    <div id="menu-bar"><span><b>El Meu Portafolis</b> v3.1</span></div>
+    <div id="menu-bar"><span><b>El Meu Portafolis</b> v4.0</span></div>
     <div id="desktop">
         <div id="desktop-icons">
             <div class="icon" id="icon-readme" tabindex="0"><img src="file.png" alt="Arxiu Llegeix-me"><span>Llegeix-me.txt</span></div>
@@ -67,7 +66,7 @@
     </div>
 
     <!-- ====================================================== -->
-    <!-- === BLOC 2: SCRIPT PRINCIPAL (SENSE CANVIS) ========= -->
+    <!-- === BLOC 2: SCRIPT PRINCIPAL ========================= -->
     <!-- ====================================================== -->
     <script>
     document.addEventListener('DOMContentLoaded', () => {
@@ -343,7 +342,5 @@
     });
     </script>
     
-    <!-- BLOC 3: ELIMINAT -->
-
 </body>
 </html>
