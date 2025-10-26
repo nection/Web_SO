@@ -34,11 +34,12 @@ jobs:
             # 2. Descarreguem l'últim estat del repositori remot sense intentar fusionar
             git fetch origin main
             
-            # 3. Forcem que la còpia local sigui un clon exacte de la remota, descartant qualsevol canvi local
+            # 3. Forcem que els FITXERS SEGUITS PER GIT siguin un clon exacte de la versió remota.
+            # Aquesta comanda NO TOCARÀ els fitxers i carpetes especificats al .gitignore.
             git reset --hard origin/main
             
             # 4. Instal·lem les dependències de forma neta i només les de producció
             npm ci --production
             
-            # 5. Reiniciem l'aplicació amb PM2 per aplicar tots els canvis
+            # 5. Reiniciem l'aplicació amb PM2 per aplicar tots els canvis de codi
             pm2 restart web-so
