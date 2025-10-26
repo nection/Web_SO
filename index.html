@@ -6,7 +6,7 @@
     <title>El Meu Portafolis</title>
     
     <!-- ====================================================== -->
-    <!-- === BLOC 1: ESTILS CSS (MODIFICAT) ==================== -->
+    <!-- === BLOC 1: ESTILS CSS (SENSE CANVIS) ================= -->
     <!-- ====================================================== -->
     <style>
         body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'VT323', monospace, sans-serif; background-color: #008080; user-select: none; }
@@ -15,44 +15,9 @@
         #taskbar { position: fixed; bottom: 0; left: 0; width: 100%; height: 35px; background: #c0c0c0; border-top: 2px solid #ffffff; display: flex; align-items: center; padding: 0 5px; box-sizing: border-box; z-index: 10000; }
         #start-button { font-weight: bold; padding: 2px 10px; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; flex-shrink: 0; }
         #start-button:active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; }
-
-        #taskbar-windows {
-            flex-grow: 1;
-            height: 100%;
-            display: flex;
-            align-items: center;
-            gap: 3px;
-            padding: 0 5px;
-            overflow: hidden;
-        }
-        
-        .taskbar-tab {
-            flex-grow: 1;
-            flex-shrink: 1;
-            min-width: 50px;
-            max-width: 160px;
-            padding: 2px 8px;
-            border: 2px solid;
-            border-top-color: #ffffff;
-            border-left-color: #ffffff;
-            border-right-color: #808080;
-            border-bottom-color: #808080;
-            cursor: pointer;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            font-size: 16px;
-            text-align: left;
-        }
-
-        .taskbar-tab.active {
-            border-top-color: #808080;
-            border-left-color: #808080;
-            border-right-color: #ffffff;
-            border-bottom-color: #ffffff;
-            background-color: #e0e0e0;
-        }
-
+        #taskbar-windows { flex-grow: 1; height: 100%; display: flex; align-items: center; gap: 3px; padding: 0 5px; overflow: hidden; }
+        .taskbar-tab { flex-grow: 1; flex-shrink: 1; min-width: 50px; max-width: 160px; padding: 2px 8px; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 16px; text-align: left; }
+        .taskbar-tab.active { border-top-color: #808080; border-left-color: #808080; border-right-color: #ffffff; border-bottom-color: #ffffff; background-color: #e0e0e0; }
         #clock { padding: 2px 10px; border: 2px inset #808080; flex-shrink: 0; }
         #desktop { width: 100%; height: 100%; position: relative; padding-top: 25px; padding-bottom: 35px; box-sizing: border-box; display: flex; align-items: flex-start; padding-left: 30px; }
         #desktop-icons { display: flex; flex-direction: column; gap: 20px; padding-top: 20px; }
@@ -62,62 +27,14 @@
         .icon span { display: block; margin-top: 5px; white-space: nowrap; }
         .window { position: absolute; background-color: #c0c0c0; border: 2px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; box-shadow: 2px 2px 5px rgba(0,0,0,0.5); min-width: 350px; min-height: 250px; width: 600px; height: 450px; display: flex; flex-direction: column; }
         .window .title-bar { background-color: #000080; color: white; padding: 3px 5px; font-weight: bold; display: flex; justify-content: space-between; align-items: center; cursor: move; height: 20px; }
-        
-        /* === INICI DE LA CORRECCIÓ === */
-        .title-bar-buttons {
-            display: flex; /* AQUESTA ÉS LA LÍNIA QUE HO SOLUCIONA */
-        }
-        .title-bar-buttons button {
-            background-color: #c0c0c0;
-            border: 1px solid;
-            border-top-color: #ffffff;
-            border-left-color: #ffffff;
-            border-right-color: #808080;
-            border-bottom-color: #808080;
-            font-family: 'VT323', monospace;
-            width: 16px;
-            height: 14px;
-            padding: 0;
-            margin-left: 2px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            line-height: 1;
-        }
-        .title-bar-buttons button.minimize-btn {
-            padding-bottom: 4px; 
-        }
-        /* === FINAL DE LA CORRECCIÓ === */
-
+        .title-bar-buttons { display: flex; }
+        .title-bar-buttons button { background-color: #c0c0c0; border: 1px solid; border-top-color: #ffffff; border-left-color: #ffffff; border-right-color: #808080; border-bottom-color: #808080; font-family: 'VT323', monospace; width: 16px; height: 14px; padding: 0; margin-left: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; }
+        .title-bar-buttons button.minimize-btn { padding-bottom: 4px; }
         .window .content { flex-grow: 1; background-color: white; margin: 3px; color: black; font-size: 18px; display: flex; flex-direction: column; overflow: hidden; }
         .resizer { position: absolute; } .resizer.n { top: -3px; left: 5px; right: 5px; height: 6px; cursor: n-resize; } .resizer.s { bottom: -3px; left: 5px; right: 5px; height: 6px; cursor: s-resize; } .resizer.e { top: 5px; bottom: 5px; right: -3px; width: 6px; cursor: e-resize; } .resizer.w { top: 5px; bottom: 5px; left: -3px; width: 6px; cursor: w-resize; } .resizer.ne { top: -3px; right: -3px; width: 8px; height: 8px; cursor: ne-resize; } .resizer.nw { top: -3px; left: -3px; width: 8px; height: 8px; cursor: nw-resize; } .resizer.se { bottom: -3px; right: -3px; width: 8px; height: 8px; cursor: se-resize; } .resizer.sw { bottom: -3px; left: -3px; width: 8px; height: 8px; cursor: sw-resize; }
         .window .content.folder-view { padding: 0; }
-        
-        .files-container {
-            flex: 1;
-            overflow-y: auto;
-            display: flex;
-            flex-wrap: wrap;
-            align-content: flex-start;
-            gap: 15px;
-            padding: 25px 15px 15px 15px;
-        }
-        
-        .file-card {
-            background-color: #ffffff;
-            cursor: pointer;
-            overflow: hidden;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            flex-grow: 1;
-            flex-shrink: 0;
-            flex-basis: 260px;
-            max-width: 300px;
-        }
-        
+        .files-container { flex: 1; overflow-y: auto; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 15px; padding: 25px 15px 15px 15px; }
+        .file-card { background-color: #ffffff; cursor: pointer; overflow: hidden; border-radius: 4px; border: 1px solid #ddd; box-shadow: 0 2px 5px rgba(0,0,0,0.05); transition: transform 0.2s ease, box-shadow 0.2s ease; flex-grow: 1; flex-shrink: 0; flex-basis: 260px; max-width: 300px; }
         .file-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.1); }
         .card-image { width: 100%; height: 120px; background-color: #e9ecef; background-size: cover; background-position: center; }
         .card-image-placeholder { display: flex; align-items: center; justify-content: center; font-size: 3em; color: #adb5bd; height: 100%; }
@@ -129,10 +46,10 @@
         .search-bar-container { width: 100%; padding: 8px 10px; border-bottom: 2px solid #f0f0f0; box-sizing: border-box; background-color: #f8f9fa; }
         .search-input { width: 100%; padding: 8px; font-size: 16px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
     </style>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/pi0/clippyjs/assets/clippy.css">
+    <!-- El link a clippy.css ha estat eliminat -->
 </head>
 
-   <body>
+<body>
 
     <div id="menu-bar"><span><b>El Meu Portafolis</b> v3.1</span></div>
     <div id="desktop">
@@ -150,284 +67,283 @@
     </div>
 
     <!-- ====================================================== -->
-    <!-- === BLOC 2: SCRIPT PRINCIPAL (MODIFICAT) ============= -->
+    <!-- === BLOC 2: SCRIPT PRINCIPAL (SENSE CANVIS) ========= -->
     <!-- ====================================================== -->
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            let zIndexCounter = 10;
-            const desktop = document.getElementById('desktop');
-            let dataCache = null;
-            let windowCascadeCount = 0;
-            const folderPositions = {};
-            let nextFolderPositionIndex = 0;
-            const presetFolderPositions = [
-                { top: 40, left: 20 },
-                { top: 70, left: 180 },
-                { top: 100, left: 90 }
-            ];
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- BLOC 2.1: VARIABLES D'ESTAT I CONFIGURACIÓ ---
+        let zIndexCounter = 10;
+        const desktop = document.getElementById('desktop');
+        let windowCascadeCount = 0;
+        const folderPositions = {};
+        let nextFolderPositionIndex = 0;
+        const presetFolderPositions = [ { top: 40, left: 20 }, { top: 70, left: 180 }, { top: 100, left: 90 }];
+        const windowStates = {};
 
-            const welcomeContentHTML = `
-                <h1>Benvingut/da al meu Portafolis Interactiu!</h1>
-                <p>Hola! Soc <strong>[El Teu Nom]</strong>, un/a desenvolupador/a i entusiasta de la tecnologia amb ganes de crear experiències úniques.</p>
-                <p>Aquesta web simula un escriptori d'un sistema operatiu clàssic. Està dissenyada per ser una forma original i divertida de mostrar els meus treballs. Aquí tens una petita guia per començar a explorar:</p>
-                <ul>
-                    <li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen. Dins veuràs targetes amb imatges i resums.</li>
-                    <li><b>Obre els arxius:</b> Un cop dins d'una carpeta, fes doble clic sobre qualsevol targeta per llegir el contingut complet en una nova finestra.</li>
-                    <li><b>Gestiona el teu espai:</b> Pots arrossegar les finestres per organitzar l'escriptori. També pots redimensionar-les des de qualsevol costat o cantonada.</li>
-                    <li><b>Minimitza finestres:</b> Utilitza el botó "_" per amagar una finestra a la barra de tasques i recuperar-la més tard fent-hi clic.</li>
-                    <li><b>Cerca Global:</b> A dins de cada carpeta, trobaràs una barra de cerca per filtrar els arxius ràpidament.</li>
-                </ul>
-                <p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p>
-            `;
+        const welcomeContentHTML = `
+            <h1>Benvingut/da al meu Portafolis Interactiu!</h1>
+            <p>Hola! Soc <strong>[El Teu Nom]</strong>, un/a desenvolupador/a i entusiasta de la tecnologia amb ganes de crear experiències úniques.</p>
+            <p>Aquesta web simula un escriptori d'un sistema operatiu clàssic. Està dissenyada per ser una forma original i divertida de mostrar els meus treballs. Aquí tens una petita guia per començar a explorar:</p>
+            <ul>
+                <li><b>Navega per les carpetes:</b> Fes doble clic a les icones de l'escriptori ("Projectes", "Apps", "Bloc") per obrir-les i veure què contenen. Dins veuràs targetes amb imatges i resums.</li>
+                <li><b>Scroll Infinit:</b> A mesura que baixis, es carregaran més elements automàticament.</li>
+                <li><b>Obre els arxius:</b> Un cop dins d'una carpeta, fes doble clic sobre qualsevol targeta per llegir el contingut complet en una nova finestra.</li>
+                <li><b>Gestiona el teu espai:</b> Pots arrossegar les finestres per organitzar l'escriptori. També pots redimensionar-les des de qualsevol costat o cantonada.</li>
+                <li><b>Minimitza finestres:</b> Utilitza el botó "_" per amagar una finestra a la barra de tasques i recuperar-la més tard fent-hi clic.</li>
+                <li><b>Cerca Instantània:</b> A dins de cada carpeta, trobaràs una barra de cerca per filtrar els arxius ràpidament. La cerca es fa directament al servidor per a màxima eficiència.</li>
+            </ul>
+            <p>Espero que gaudeixis de l'experiència. Endavant, explora sense por!</p>
+        `;
 
-            const fetchData = async () => {
-                if (dataCache) return dataCache;
-                const response = await fetch('/api/data/all');
-                dataCache = await response.json();
-                return dataCache;
+        // --- BLOC 2.2: FUNCIONS PRINCIPALS DE LÒGICA ---
+
+        const stripHtml = (html) => { let tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ""; }
+        const getPluralType = (type) => type === 'blog' ? type : type + 's';
+
+        const debounce = (func, delay) => {
+            let timeout;
+            return function(...args) {
+                const context = this;
+                clearTimeout(timeout);
+                timeout = setTimeout(() => func.apply(context, args), delay);
             };
+        };
 
-            const updateActiveState = (windowId) => {
-                document.querySelectorAll('.window').forEach(win => {
-                    win.classList.toggle('active', win.id === windowId);
-                });
-                document.querySelectorAll('.taskbar-tab').forEach(tb => {
-                    tb.classList.toggle('active', tb.dataset.windowId === windowId);
-                });
-            };
-            
-            const createWindow = (id, title, contentHTML, options = {}) => {
-                const existingWindow = document.getElementById(id);
-                if (existingWindow) {
-                    existingWindow.style.display = 'flex';
-                    existingWindow.style.zIndex = zIndexCounter++;
-                    updateActiveState(id);
-                    return;
-                }
-                const win = document.createElement('div');
-                win.id = id; win.className = 'window';
-                const winWidth = parseInt(options.width || '600px', 10);
-                const winHeight = parseInt(options.height || '450px', 10);
-                win.style.width = `${winWidth}px`; win.style.height = `${winHeight}px`;
-                
-                if (options.pos?.left && options.pos?.top) { 
-                    win.style.left = options.pos.left; win.style.top = options.pos.top; 
-                } else if (options.isFolder) {
-                    let pos;
-                    if (folderPositions[id]) {
-                        pos = folderPositions[id];
-                    } else {
-                        pos = presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length];
-                        folderPositions[id] = pos;
-                        nextFolderPositionIndex++;
-                    }
-                    const desktopWidth = desktop.offsetWidth;
-                    const desktopHeight = desktop.offsetHeight;
-                    let finalLeft = pos.left;
-                    let finalTop = pos.top;
-                    if (finalLeft + winWidth > desktopWidth) { finalLeft = Math.max(10, desktopWidth - winWidth - 20); }
-                    if (finalTop + winHeight > desktopHeight) { finalTop = Math.max(10, desktopHeight - winHeight - 20); }
-                    win.style.left = `${finalLeft}px`; win.style.top = `${finalTop}px`;
-                } else {
-                    const offset = (windowCascadeCount % 10) * 30;
-                    let left = 40 + offset; let top = 40 + offset;
-                    if (left + winWidth > desktop.offsetWidth) left = Math.max(10, desktop.offsetWidth - winWidth - 20);
-                    if (top + winHeight > desktop.offsetHeight) top = Math.max(10, desktop.offsetHeight - winHeight - 20);
-                    win.style.left = `${left}px`; win.style.top = `${top}px`;
-                    windowCascadeCount++;
-                }
-
-                win.style.zIndex = zIndexCounter++;
-                win.innerHTML = `<div class="title-bar"><span class="title">${title}</span><div class="title-bar-buttons"><button class="minimize-btn">_</button><button class="close-btn">x</button></div></div><div class="content ${options.contentClass || ''}">${contentHTML}</div><div class="resizer n"></div><div class="resizer s"></div><div class="resizer e"></div><div class="resizer w"></div><div class="resizer ne"></div><div class="resizer nw"></div><div class="resizer se"></div><div class="resizer sw"></div>`;
-                desktop.appendChild(win);
-                
-                const taskbar = document.getElementById('taskbar-windows');
-                const tab = document.createElement('div');
-                tab.className = 'taskbar-tab';
-                tab.textContent = title;
-                tab.dataset.windowId = id;
-                taskbar.appendChild(tab);
-
+        const updateActiveState = (windowId) => {
+            document.querySelectorAll('.window').forEach(win => win.classList.toggle('active', win.id === windowId));
+            document.querySelectorAll('.taskbar-tab').forEach(tb => tb.classList.toggle('active', tb.dataset.windowId === windowId));
+        };
+        
+        const createWindow = (id, title, contentHTML, options = {}) => {
+            const existingWindow = document.getElementById(id);
+            if (existingWindow) {
+                existingWindow.style.display = 'flex';
+                existingWindow.style.zIndex = zIndexCounter++;
                 updateActiveState(id);
-                
-                makeDraggable(win); makeResizable(win);
+                return existingWindow;
+            }
+            const win = document.createElement('div');
+            win.id = id; win.className = 'window';
+            const winWidth = parseInt(options.width || '600px', 10);
+            const winHeight = parseInt(options.height || '450px', 10);
+            win.style.width = `${winWidth}px`; win.style.height = `${winHeight}px`;
+            
+            if (options.pos?.left && options.pos?.top) { 
+                win.style.left = options.pos.left; win.style.top = options.pos.top; 
+            } else if (options.isFolder) {
+                let pos;
+                if (folderPositions[id]) { pos = folderPositions[id]; }
+                else { pos = presetFolderPositions[nextFolderPositionIndex % presetFolderPositions.length]; folderPositions[id] = pos; nextFolderPositionIndex++; }
+                const desktopWidth = desktop.offsetWidth; const desktopHeight = desktop.offsetHeight;
+                let finalLeft = pos.left; let finalTop = pos.top;
+                if (finalLeft + winWidth > desktopWidth) { finalLeft = Math.max(10, desktopWidth - winWidth - 20); }
+                if (finalTop + winHeight > desktopHeight) { finalTop = Math.max(10, desktopHeight - winHeight - 20); }
+                win.style.left = `${finalLeft}px`; win.style.top = `${finalTop}px`;
+            } else {
+                const offset = (windowCascadeCount % 10) * 30;
+                let left = 40 + offset; let top = 40 + offset;
+                if (left + winWidth > desktop.offsetWidth) left = Math.max(10, desktop.offsetWidth - winWidth - 20);
+                if (top + winHeight > desktop.offsetHeight) top = Math.max(10, desktop.offsetHeight - winHeight - 20);
+                win.style.left = `${left}px`; win.style.top = `${top}px`;
+                windowCascadeCount++;
+            }
 
-                win.querySelector('.close-btn').addEventListener('click', () => {
-                    win.remove();
-                    tab.remove();
-                });
-                
-                win.querySelector('.minimize-btn').addEventListener('click', () => {
-                    win.style.display = 'none';
-                    tab.classList.remove('active');
-                });
+            win.style.zIndex = zIndexCounter++;
+            win.innerHTML = `<div class="title-bar"><span class="title">${title}</span><div class="title-bar-buttons"><button class="minimize-btn">_</button><button class="close-btn">x</button></div></div><div class="content ${options.contentClass || ''}">${contentHTML}</div><div class="resizer n"></div><div class="resizer s"></div><div class="resizer e"></div><div class="resizer w"></div><div class="resizer ne"></div><div class="resizer nw"></div><div class="resizer se"></div><div class="resizer sw"></div>`;
+            desktop.appendChild(win);
+            
+            const taskbar = document.getElementById('taskbar-windows');
+            const tab = document.createElement('div');
+            tab.className = 'taskbar-tab';
+            tab.textContent = title;
+            tab.dataset.windowId = id;
+            taskbar.appendChild(tab);
 
-                win.addEventListener('mousedown', () => {
+            updateActiveState(id);
+            makeDraggable(win); makeResizable(win);
+
+            win.querySelector('.close-btn').addEventListener('click', () => {
+                win.remove();
+                tab.remove();
+                if (options.type) delete windowStates[options.type];
+            });
+            
+            win.querySelector('.minimize-btn').addEventListener('click', () => {
+                win.style.display = 'none';
+                tab.classList.remove('active');
+            });
+
+            win.addEventListener('mousedown', () => {
+                win.style.zIndex = zIndexCounter++;
+                updateActiveState(id);
+            });
+
+            tab.addEventListener('click', () => {
+                const isMinimized = win.style.display === 'none';
+                const isActive = tab.classList.contains('active');
+                if (isMinimized) {
+                    win.style.display = 'flex';
                     win.style.zIndex = zIndexCounter++;
                     updateActiveState(id);
-                });
-
-                tab.addEventListener('click', () => {
-                    const isMinimized = win.style.display === 'none';
-                    const isActive = tab.classList.contains('active');
-                    if (isMinimized) {
-                        win.style.display = 'flex';
-                        win.style.zIndex = zIndexCounter++;
-                        updateActiveState(id);
-                    } else {
-                        if (isActive) {
-                            win.style.display = 'none';
-                            tab.classList.remove('active');
-                        } else {
-                            win.style.zIndex = zIndexCounter++;
-                            updateActiveState(id);
-                        }
-                    }
-                });
-                
-                if (options.isFolder) { win.querySelector('.files-container').addEventListener('dblclick', handleOpenFile); }
-            };
-
-            const handleOpenFile = async (event) => {
-                const fileCard = event.target.closest('.file-card'); if (!fileCard) return;
-                const { type, id } = fileCard.dataset; const numericId = parseInt(id, 10);
-                const data = await fetchData();
-                const arrayName = type === 'blog' ? 'blog' : type + 's';
-                const item = data[arrayName].find(d => d.id === numericId);
-                if (!item) { console.error("No s'ha trobat l'element:", type, id); return; }
-                let fileContentHTML = ''; let fileTitle = `${item.title}.txt`; let windowOptions = { contentClass: 'document-view' };
-                if (type === 'project' || type === 'app') { fileContentHTML = item.description; } else if (type === 'blog') {
-                    fileContentHTML = `<h1>${item.title}</h1><div class="date">${new Date(item.date).toLocaleDateString()}</div>${item.content}`;
-                    windowOptions.width = '700px'; windowOptions.height = '840px';
-                }
-                createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
-            };
-            const stripHtml = (html) => { let tmp = document.createElement("DIV"); tmp.innerHTML = html; return tmp.textContent || tmp.innerText || ""; }
-
-            const createFolderWindow = async (type, windowTitle) => {
-                const data = await fetchData(); 
-                const items = data[getPluralType(type)] || [];
-                let filesHTML = '';
-                items.forEach(item => {
-                    const snippet = stripHtml(item.description || item.content).substring(0, 100);
-                    const imageStyle = item.imageUrl ? `background-image: url('${item.imageUrl}')` : '';
-                    const imagePlaceholder = !item.imageUrl ? '<div class="card-image-placeholder">🖼️</div>' : '';
-                    filesHTML += `<div class="file-card" data-type="${type}" data-id="${item.id}"><div class="card-image" style="${imageStyle}">${imagePlaceholder}</div><div class="card-body"><h4>${item.title}</h4><p>${snippet}...</p></div></div>`;
-                });
-                const content = `<div class="search-bar-container"><input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca..."></div><div class="files-container" id="${type}-files-container">${filesHTML}</div>`;
-                
-                const windowOptions = { 
-                    isFolder: true, 
-                    contentClass: 'folder-view', 
-                    width: '870px', 
-                    height: '550px' 
-                };
-                
-                createWindow(`window-${getPluralType(type)}`, windowTitle, content, windowOptions);
-                document.getElementById(`${type}-search-input`).addEventListener('input', (event) => handleSearch(event, type));
-            };
-
-            document.getElementById('icon-projects').addEventListener('dblclick', () => createFolderWindow('project', 'Projectes'));
-            document.getElementById('icon-apps').addEventListener('dblclick', () => createFolderWindow('app', 'Aplicacions'));
-            document.getElementById('icon-blog').addEventListener('dblclick', () => createFolderWindow('blog', 'Bloc'));
-            document.getElementById('icon-readme').addEventListener('dblclick', () => showWelcomeWindow());
-            const getPluralType = (type) => type === 'blog' ? type : type + 's';
-            const handleSearch = (event, type) => {
-                const query = event.target.value.toLowerCase().trim();
-                const containerId = `${type}-files-container`;
-                const allFiles = document.querySelectorAll(`#${containerId} .file-card`);
-                const items = dataCache[getPluralType(type)];
-                allFiles.forEach(fileCard => {
-                    const id = parseInt(fileCard.dataset.id, 10); 
-                    const item = items.find(i => i.id === id); 
-                    if (!item) return;
-                    const searchableText = stripHtml(`${item.title} ${item.description || item.content} ${item.date || ''}`).toLowerCase();
-                    fileCard.style.display = searchableText.includes(query) ? '' : 'none';
-                });
-            };
-            const makeDraggable = (element) => { let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0; const header = element.querySelector('.title-bar'); if (header) header.onmousedown = dragMouseDown; function dragMouseDown(e) { e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; } function elementDrag(e) { e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; } function closeDragElement() { document.onmouseup = null; document.onmousemove = null; } };
-            const makeResizable = (element) => { const resizers = element.querySelectorAll('.resizer'); const minimum_size = 200; let original_width = 0, original_height = 0, original_x = 0, original_y = 0; let original_mouse_x = 0, original_mouse_y = 0; resizers.forEach(resizer => { resizer.addEventListener('mousedown', (e) => { e.preventDefault(); original_width = parseFloat(getComputedStyle(element, null).getPropertyValue('width').replace('px', '')); original_height = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', '')); original_x = element.getBoundingClientRect().left; original_y = element.getBoundingClientRect().top; original_mouse_x = e.pageX; original_mouse_y = e.pageY; window.addEventListener('mousemove', resize); window.addEventListener('mouseup', stopResize); function resize(e) { if (resizer.classList.contains('se')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height + (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('sw')) { const height = original_height + (e.pageY - original_mouse_y); const width = original_width - (e.pageX - original_mouse_x); if (height > minimum_size) element.style.height = height + 'px'; if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } else if (resizer.classList.contains('ne')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('nw')) { const width = original_width - (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('n')) { const height = original_height - (e.pageY - original_mouse_y); if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('s')) { const height = original_height + (e.pageY - original_mouse_y); if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('e')) { const width = original_width + (e.pageX - original_mouse_x); if (width > minimum_size) element.style.width = width + 'px'; } else if (resizer.classList.contains('w')) { const width = original_width - (e.pageX - original_mouse_x); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } } function stopResize() { window.removeEventListener('mousemove', resize); } }); }); }
-            document.querySelectorAll('.icon').forEach(icon => makeDraggable(icon));
-            const updateClock = () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, '0'); const minutes = String(now.getMinutes()).padStart(2, '0'); document.getElementById('clock').textContent = `${hours}:${minutes}`; }
-            setInterval(updateClock, 1000); updateClock();
-            const showWelcomeWindow = () => {
-                const desktopWidth = desktop.offsetWidth; const desktopHeight = desktop.offsetHeight; let winWidth = 600; let winHeight = 500;
-                if (winWidth > desktopWidth - 40) winWidth = desktopWidth - 40; if (winHeight > desktopHeight - 40) winHeight = desktopHeight - 40;
-                const centerLeft = (desktopWidth / 2) - (winWidth / 2); const centerTop = (desktopHeight / 2) - (winHeight / 2);
-                const options = { pos: {left: `${centerLeft}px`, top: `${centerTop}px`}, contentClass: 'document-view', width: `${winWidth}px`, height: `${winHeight}px` };
-                createWindow('window-welcome', 'Benvinguda.txt', welcomeContentHTML, options);
-            }
-            fetchData();
-            showWelcomeWindow();
-        });
-    </script>
-    
-    <!-- ====================================================== -->
-    <!-- === BLOC 3: SCRIPTS DE CLIPPY (SENSE CANVIS) ========= -->
-    <!-- ====================================================== -->
-    <script src="https://unpkg.com/jquery@3.2.1"></script>
-    <script src="clippy.js"></script>
-    <script src="/agents/Clippy/sounds-ogg.js"></script>
-    <script src="/agents/Clippy/agent.js"></script>
-    <script>
-        window.CLIPPY_CDN = '/agents/';
-        clippy.load('Clippy', function(agent) {
-            agent.moveTo(50, window.innerHeight - 150);
-            agent.show();
-            setTimeout(function() {
-                agent.speak('Perdona la tardança! Tenia els papers desordenats.');
-                agent.animate();
-            }, 2000);
-            function askClippy() {
-                if (!window.clippyAgent) return;
-                const inputHtml = `
-                    <div>Què t'agradaria saber?<br>
-                        <input type="text" id="clippy-prompt-input" style="width: 160px; margin-top: 5px; font-family: 'Microsoft Sans', sans-serif; font-size: 10pt;">
-                        <button id="clippy-prompt-button" style="font-family: 'Microsoft Sans', sans-serif; font-size: 10pt;">Enviar</button>
-                    </div>
-                `;
-                window.clippyAgent.speak(inputHtml);
-                setTimeout(function() {
-                    const sendButton = document.getElementById('clippy-prompt-button');
-                    const inputField = document.getElementById('clippy-prompt-input');
-                    if (!sendButton || !inputField) return;
-                    inputField.focus();
-                    async function submitQuery() {
-                        const userPrompt = inputField.value;
-                        if (userPrompt && userPrompt.trim() !== '') {
-                            sendButton.disabled = true;
-                            inputField.disabled = true;
-                            window.clippyAgent.animate();
-                            window.clippyAgent.speak('Un moment, estic pensant...');
-                            try {
-                                const response = await fetch('/api/ask-clippy', {
-                                    method: 'POST',
-                                    headers: { 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ prompt: userPrompt })
-                                });
-                                const data = await response.json();
-                                window.clippyAgent.speak(data.reply);
-                            } catch (error) {
-                                window.clippyAgent.speak('Vaja... alguna cosa ha anat malament.');
-                            }
-                        } else {
-                            window.clippyAgent.speak("No has escrit res. Prova de nou!");
-                        }
-                    }
-                    sendButton.addEventListener('click', submitQuery);
-                    inputField.addEventListener('keypress', function(e) {
-                        if (e.key === 'Enter') {
-                            submitQuery();
-                        }
-                    });
-                }, 100);
-            }
-            document.querySelector('body').addEventListener('click', function (e) {
-                if (e.target.closest && e.target.closest('.clippy')) {
-                    askClippy();
+                } else {
+                    if (isActive) { win.style.display = 'none'; tab.classList.remove('active'); }
+                    else { win.style.zIndex = zIndexCounter++; updateActiveState(id); }
                 }
             });
-        });
+            
+            if (options.isFolder) { win.querySelector('.files-container').addEventListener('dblclick', handleOpenFile); }
+
+            return win;
+        };
+        
+        // --- BLOC 2.3: NOVA LÒGICA DE CÀRREGA DE DADES I RENDERITZAT ---
+
+        const fetchWindowData = async (type) => {
+            const state = windowStates[type];
+            if (state.isLoading || state.currentPage > state.totalPages) return;
+
+            state.isLoading = true;
+            const pluralType = getPluralType(type);
+            const url = `/api/public/data/${pluralType}?page=${state.currentPage}&q=${encodeURIComponent(state.query)}`;
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                renderWindowItems(type, data.items);
+                state.totalPages = data.totalPages;
+                state.currentPage++;
+            } catch (error) {
+                console.error("Error carregant dades:", error);
+                const container = document.getElementById(`${type}-files-container`);
+                if (container) container.innerHTML = '<p style="color:red; text-align:center; width:100%;">Error en carregar les dades.</p>';
+            } finally {
+                state.isLoading = false;
+            }
+        };
+
+        const renderWindowItems = (type, items) => {
+            const container = document.getElementById(`${type}-files-container`);
+            if (!container) return;
+
+            if (items.length === 0 && windowStates[type].currentPage === 1) {
+                container.innerHTML = '<p style="text-align:center; width:100%; color:#666;">No s\'han trobat resultats.</p>';
+                return;
+            }
+
+            let filesHTML = '';
+            items.forEach(item => {
+                const contentKey = item.content ? 'content' : 'description';
+                const snippet = stripHtml(item[contentKey] || '').substring(0, 100);
+                const imageStyle = item.imageUrl ? `background-image: url('${item.imageUrl}')` : '';
+                const imagePlaceholder = !item.imageUrl ? '<div class="card-image-placeholder">🖼️</div>' : '';
+                filesHTML += `<div class="file-card" data-type="${type}" data-id="${item.id}"><div class="card-image" style="${imageStyle}">${imagePlaceholder}</div><div class="card-body"><h4>${item.title}</h4><p>${snippet}...</p></div></div>`;
+            });
+            container.innerHTML += filesHTML;
+        };
+
+        const createFolderWindow = (type, windowTitle) => {
+            const pluralType = getPluralType(type);
+            const windowId = `window-${pluralType}`;
+            
+            const existingWindow = document.getElementById(windowId);
+            if (existingWindow) {
+                existingWindow.style.display = 'flex';
+                existingWindow.style.zIndex = zIndexCounter++;
+                updateActiveState(windowId);
+                return;
+            }
+
+            windowStates[type] = {
+                currentPage: 1,
+                totalPages: 1,
+                isLoading: false,
+                query: ''
+            };
+            
+            const content = `<div class="search-bar-container"><input type="text" id="${type}-search-input" class="search-input" placeholder="Cerca..."></div><div class="files-container" id="${type}-files-container"></div>`;
+            const windowOptions = { isFolder: true, contentClass: 'folder-view', width: '870px', height: '550px', type: type };
+            
+            const win = createWindow(windowId, windowTitle, content, windowOptions);
+            
+            const searchInput = document.getElementById(`${type}-search-input`);
+            const filesContainer = document.getElementById(`${type}-files-container`);
+
+            const debouncedSearch = debounce(() => {
+                const state = windowStates[type];
+                state.query = searchInput.value;
+                state.currentPage = 1;
+                state.totalPages = 1;
+                filesContainer.innerHTML = '';
+                fetchWindowData(type);
+            }, 400);
+            searchInput.addEventListener('input', debouncedSearch);
+
+            filesContainer.addEventListener('scroll', () => {
+                if (filesContainer.scrollTop + filesContainer.clientHeight >= filesContainer.scrollHeight * 0.8) {
+                    fetchWindowData(type);
+                }
+            });
+
+            fetchWindowData(type);
+        };
+        
+        const handleOpenFile = async (event) => {
+            const fileCard = event.target.closest('.file-card'); if (!fileCard) return;
+            const { type, id } = fileCard.dataset;
+            
+            try {
+                const response = await fetch(`/api/item/${type}/${id}`);
+                const item = await response.json();
+                if (!item) { console.error("No s'ha trobat l'element:", type, id); return; }
+
+                let fileContentHTML = '';
+                let fileTitle = `${item.title}.txt`;
+                let windowOptions = { contentClass: 'document-view' };
+
+                if (type === 'project' || type === 'app') {
+                    fileContentHTML = item.description;
+                } else if (type === 'blog') {
+                    fileContentHTML = `<h1>${item.title}</h1><div class="date">${new Date(item.date).toLocaleDateString()}</div>${item.content}`;
+                    windowOptions.width = '700px';
+                    windowOptions.height = '840px';
+                }
+                createWindow(`window-${type}-${id}`, fileTitle, fileContentHTML, windowOptions);
+
+            } catch(error) {
+                console.error("No s'ha pogut obrir l'arxiu:", error);
+                alert("Error: no s'ha pogut carregar el contingut d'aquest arxiu.");
+            }
+        };
+
+        // --- BLOC 2.4: FUNCIONS D'INTERFICIE I EVENTS ---
+
+        const makeDraggable = (element) => { let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0; const header = element.querySelector('.title-bar'); if (header) header.onmousedown = dragMouseDown; function dragMouseDown(e) { e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; } function elementDrag(e) { e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; } function closeDragElement() { document.onmouseup = null; document.onmousemove = null; } };
+        const makeResizable = (element) => { const resizers = element.querySelectorAll('.resizer'); const minimum_size = 200; let original_width = 0, original_height = 0, original_x = 0, original_y = 0; let original_mouse_x = 0, original_mouse_y = 0; resizers.forEach(resizer => { resizer.addEventListener('mousedown', (e) => { e.preventDefault(); original_width = parseFloat(getComputedStyle(element, null).getPropertyValue('width').replace('px', '')); original_height = parseFloat(getComputedStyle(element, null).getPropertyValue('height').replace('px', '')); original_x = element.getBoundingClientRect().left; original_y = element.getBoundingClientRect().top; original_mouse_x = e.pageX; original_mouse_y = e.pageY; window.addEventListener('mousemove', resize); window.addEventListener('mouseup', stopResize); function resize(e) { if (resizer.classList.contains('se')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height + (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('sw')) { const height = original_height + (e.pageY - original_mouse_y); const width = original_width - (e.pageX - original_mouse_x); if (height > minimum_size) element.style.height = height + 'px'; if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } else if (resizer.classList.contains('ne')) { const width = original_width + (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) element.style.width = width + 'px'; if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('nw')) { const width = original_width - (e.pageX - original_mouse_x); const height = original_height - (e.pageY - original_mouse_y); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('n')) { const height = original_height - (e.pageY - original_mouse_y); if (height > minimum_size) { element.style.height = height + 'px'; element.style.top = original_y + (e.pageY - original_mouse_y) + 'px'; } } else if (resizer.classList.contains('s')) { const height = original_height + (e.pageY - original_mouse_y); if (height > minimum_size) element.style.height = height + 'px'; } else if (resizer.classList.contains('e')) { const width = original_width + (e.pageX - original_mouse_x); if (width > minimum_size) element.style.width = width + 'px'; } else if (resizer.classList.contains('w')) { const width = original_width - (e.pageX - original_mouse_x); if (width > minimum_size) { element.style.width = width + 'px'; element.style.left = original_x + (e.pageX - original_mouse_x) + 'px'; } } } function stopResize() { window.removeEventListener('mousemove', resize); } }); }); }
+        const updateClock = () => { const now = new Date(); const hours = String(now.getHours()).padStart(2, '0'); const minutes = String(now.getMinutes()).padStart(2, '0'); document.getElementById('clock').textContent = `${hours}:${minutes}`; }
+        
+        const showWelcomeWindow = () => {
+            const desktopWidth = desktop.offsetWidth; const desktopHeight = desktop.offsetHeight; let winWidth = 600; let winHeight = 500;
+            if (winWidth > desktopWidth - 40) winWidth = desktopWidth - 40; if (winHeight > desktopHeight - 40) winHeight = desktopHeight - 40;
+            const centerLeft = (desktopWidth / 2) - (winWidth / 2); const centerTop = (desktopHeight / 2) - (winHeight / 2);
+            const options = { pos: {left: `${centerLeft}px`, top: `${centerTop}px`}, contentClass: 'document-view', width: `${winWidth}px`, height: `${winHeight}px` };
+            createWindow('window-welcome', 'Benvinguda.txt', welcomeContentHTML, options);
+        }
+        
+        // --- BLOC 2.5: INICIALITZACIÓ ---
+
+        document.getElementById('icon-projects').addEventListener('dblclick', () => createFolderWindow('project', 'Projectes'));
+        document.getElementById('icon-apps').addEventListener('dblclick', () => createFolderWindow('app', 'Aplicacions'));
+        document.getElementById('icon-blog').addEventListener('dblclick', () => createFolderWindow('blog', 'Bloc'));
+        document.getElementById('icon-readme').addEventListener('dblclick', () => showWelcomeWindow());
+        
+        document.querySelectorAll('.icon').forEach(icon => makeDraggable(icon));
+        setInterval(updateClock, 1000); 
+        updateClock();
+        showWelcomeWindow();
+    });
     </script>
-    <script src="https://cdn.jsdelivr.net/gh/pi0/clippyjs/assets/clippy.min.js"></script>
+    
+    <!-- BLOC 3: ELIMINAT -->
+
 </body>
+</html>
