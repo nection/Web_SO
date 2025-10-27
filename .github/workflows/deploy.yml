@@ -1,49 +1,53 @@
-#!/bin/bash
+# Nom del procés que veuràs a GitHub
+name: Desplegament Segur i Automàtic al Servidor NUC
 
-# --- Script de desplegament automatitzat amb gestió de certificats SSL ---
+# Aquesta acció s'activa cada cop que fas un 'push' a la branca 'main'
+on:
+  push:
+    branches:
+      - main
 
-# Atura l'script si alguna comanda falla
-set -e
+# Defineix les tasques que s'han d'executar
+jobs:
+  deploy:
+    # L'automatització s'executa en un servidor de GitHub amb Ubuntu
+    runs-on: ubuntu-latest
 
-# Ves a la carpeta del projecte. Si falla, atura l'script.
-cd /home/nection/projectes/Web_SO || exit
+    # Defineix els passos del procés
+    steps:
+      # Aquest és l'únic pas: connectar-se al teu servidor i executar les comandes
+      - name: Connectar, actualitzar i reiniciar el servidor
+        # Usem una acció pre-feta per facilitar la connexió SSH
+        uses: appleboy/ssh-action@v1.0.3 # Recomano usar una versió específica en lloc de @master
+        with:
+          # Agafem les dades dels secrets que ja tens configurats
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 2244 # <--- El teu port segur
 
-echo "✅ Iniciant desplegament automàtic..."
+          # Aquestes són les comandes que s'executaran al teu servidor, una darrere l'altra
+          script: |
+            # 1. Anem a la carpeta del teu projecte
+            cd ~/projectes/Web_SO
+            
+            # --- LÍNIES NOVES AFEGIDES - INICI ---
+            # 2. Comprovem si els certificats SSL existeixen. Si no, els creem.
+            if ! ls /home/nection/projectes/Web_SO/*-key.pem > /dev/null 2>&1; then
+              echo "Generant certificats SSL per primer cop..."
+              mkcert localhost 127.0.0.1 ::1 192.168.1.47 192.168.1.38
+            fi
+            # --- LÍNIES NOVES AFEGIDES - FI ---
 
-# Definim els noms dels arxius de certificat que esperem trobar.
-# Aquests noms són genèrics, l'script els trobarà igualment.
-CERT_FILE_KEY_PATTERN="*-key.pem"
-CERT_FILE_PATTERN="*.pem"
-
-# Comprovem si ja existeix un arxiu de clau privada.
-# `ls` donarà un error si no troba l'arxiu, per això redirigim la sortida d'error.
-if ls $CERT_FILE_KEY_PATTERN > /dev/null 2>&1; then
-    echo "🔑 Certificats SSL ja existents. Saltant generació."
-else
-    echo "‼️ No s'han trobat certificats SSL. Generant-los per primer cop..."
-    
-    # Comanda per generar els certificats per a les IPs del teu NUC
-    mkcert localhost 127.0.0.1 ::1 192.168.1.47 192.168.1.38
-    
-    echo "✅ Certificats generats correctament."
-    
-    echo "‼️ IMPORTANT: Afegeix '*.pem' al teu arxiu .gitignore per no pujar-los a GitHub!"
-    # Comprovem si .gitignore ja té la regla
-    if ! grep -q "*.pem" .gitignore; then
-        echo "*.pem" >> .gitignore
-        echo "   -> Regla '*.pem' afegida a .gitignore automàticament."
-    fi
-fi
-
-# Ara, el procés de sempre:
-echo "🚚 Descarregant la darrera versió des de GitHub..."
-git pull
-
-echo "📦 Instal·lant dependències (si n'hi ha de noves)..."
-npm install --production
-
-echo "🚀 Reiniciant el servidor amb PM2..."
-# Canvia 'el-meu-servidor' pel nom real de la teva aplicació a PM2
-pm2 restart el-meu-servidor
-
-echo "🎉 Desplegament completat amb èxit!"
+            # 3. Descarreguem l'últim estat del repositori remot
+            git fetch origin main
+            
+            # 4. Forcem que els FITXERS SEGUITS PER GIT siguin un clon exacte de la versió remota.
+            # Aquesta comanda NO TOCARÀ els fitxers .pem creats (si ja tens *.pem al .gitignore)
+            git reset --hard origin/main
+            
+            # 5. Instal·lem les dependències de forma neta i només les de producció
+            npm ci --production
+            
+            # 6. Reiniciem l'aplicació amb PM2 per aplicar tots els canvis de codi
+            pm2 restart web-so
