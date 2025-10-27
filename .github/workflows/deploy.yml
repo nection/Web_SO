@@ -31,13 +31,14 @@ jobs:
             # 1. Anem a la carpeta del teu projecte
             cd ~/projectes/Web_SO
             
-            # --- LÍNIES NOVES AFEGIDES - INICI ---
+            # --- LÒGICA DE CERTIFICATS ---
             # 2. Comprovem si els certificats SSL existeixen. Si no, els creem.
             if ! ls /home/nection/projectes/Web_SO/*-key.pem > /dev/null 2>&1; then
-              echo "Generant certificats SSL per primer cop..."
-              mkcert localhost 127.0.0.1 ::1 192.168.1.47 192.168.1.38
+              echo "Generant certificats SSL per al domini i IPs..."
+              # AQUESTA ÉS L'ÚNICA LÍNIA MODIFICADA
+              mkcert nucnectionmac.duckdns.org localhost 192.168.1.47 192.168.1.38
             fi
-            # --- LÍNIES NOVES AFEGIDES - FI ---
+            # --- FI DE LA LÒGICA DE CERTIFICATS ---
 
             # 3. Descarreguem l'últim estat del repositori remot
             git fetch origin main
