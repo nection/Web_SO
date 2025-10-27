@@ -18,37 +18,28 @@ jobs:
       # Aquest és l'únic pas: connectar-se al teu servidor i executar les comandes
       - name: Connectar, actualitzar i reiniciar el servidor
         # Usem una acció pre-feta per facilitar la connexió SSH
-        uses: appleboy/ssh-action@v1.0.3 # Recomano usar una versió específica en lloc de @master
+        uses: appleboy/ssh-action@master
         with:
-          # Agafem les dades dels secrets que ja tens configurats
+          # Agafem les dades dels secrets que has configurat al teu repositori
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 2244 # <--- El teu port segur
-
+          port: 2244 # <--- Port segur que hem configurat
+          
           # Aquestes són les comandes que s'executaran al teu servidor, una darrere l'altra
           script: |
             # 1. Anem a la carpeta del teu projecte
             cd ~/projectes/Web_SO
             
-            # --- LÒGICA DE CERTIFICATS ---
-            # 2. Comprovem si els certificats SSL existeixen. Si no, els creem.
-            if ! ls /home/nection/projectes/Web_SO/*-key.pem > /dev/null 2>&1; then
-              echo "Generant certificats SSL per al domini i IPs..."
-              # AQUESTA ÉS L'ÚNICA LÍNIA MODIFICADA
-              mkcert nucnectionmac.duckdns.org localhost 192.168.1.47 192.168.1.38
-            fi
-            # --- FI DE LA LÒGICA DE CERTIFICATS ---
-
-            # 3. Descarreguem l'últim estat del repositori remot
+            # 2. Descarreguem l'últim estat del repositori remot sense intentar fusionar
             git fetch origin main
             
-            # 4. Forcem que els FITXERS SEGUITS PER GIT siguin un clon exacte de la versió remota.
-            # Aquesta comanda NO TOCARÀ els fitxers .pem creats (si ja tens *.pem al .gitignore)
+            # 3. Forcem que els FITXERS SEGUITS PER GIT siguin un clon exacte de la versió remota.
+            # Aquesta comanda NO TOCARÀ els fitxers i carpetes especificats al .gitignore.
             git reset --hard origin/main
             
-            # 5. Instal·lem les dependències de forma neta i només les de producció
+            # 4. Instal·lem les dependències de forma neta i només les de producció
             npm ci --production
             
-            # 6. Reiniciem l'aplicació amb PM2 per aplicar tots els canvis de codi
+            # 5. Reiniciem l'aplicació amb PM2 per aplicar tots els canvis de codi
             pm2 restart web-so

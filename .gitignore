@@ -18,5 +18,3 @@ npm-debug.log*
 # Fitxers de metadades del sistema operatiu
 # macOS
 .DS_Store
-
-*.pem
