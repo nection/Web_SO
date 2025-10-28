@@ -171,7 +171,7 @@ async function startServer() {
     const ftsTableName = 'projects_fts';
     console.log(`[FTS5] Verificant l'índex de cerca per a la taula 'projects'...`);
 
-    // PAS CLAU: Esborrem la taula virtual antiga per assegurar que es crea amb l'estructura correcta.
+    // PAS CLAU:  Esborrem la taula virtual antiga per assegurar que es crea amb l'estructura correcta.
     await new Promise(res => db.run(`DROP TABLE IF EXISTS ${ftsTableName}`, res));
 
     // Ara la creem de nou amb la definició correcta (incloent 'summary').
